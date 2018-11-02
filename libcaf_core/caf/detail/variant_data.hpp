@@ -27,11 +27,10 @@
 #define CAF_VARIANT_DATA_CONCAT(x, y) x ## y
 
 #define CAF_VARIANT_DATA_GETTER(pos)                                           \
-  inline CAF_VARIANT_DATA_CONCAT(T, pos) &                                     \
-  get(std::integral_constant<int, pos>) {                                      \
+  CAF_VARIANT_DATA_CONCAT(T, pos) & get(std::integral_constant<int, pos>) {    \
     return CAF_VARIANT_DATA_CONCAT(v, pos);                                    \
   }                                                                            \
-  inline const CAF_VARIANT_DATA_CONCAT(T, pos) &                               \
+  const CAF_VARIANT_DATA_CONCAT(T, pos) &                                      \
   get(std::integral_constant<int, pos>) const {                                \
     return CAF_VARIANT_DATA_CONCAT(v, pos);                                    \
   }
@@ -39,22 +38,21 @@
 namespace caf {
 namespace detail {
 
-template <class T0,       typename T1  = unit_t, typename T2  = unit_t,
-     typename T3  = unit_t, typename T4  = unit_t, typename T5  = unit_t,
-     typename T6  = unit_t, typename T7  = unit_t, typename T8  = unit_t,
-     typename T9  = unit_t, typename T10 = unit_t, typename T11 = unit_t,
-     typename T12 = unit_t, typename T13 = unit_t, typename T14 = unit_t,
-     typename T15 = unit_t, typename T16 = unit_t, typename T17 = unit_t,
-     typename T18 = unit_t, typename T19 = unit_t, typename T20 = unit_t>
+template <class T0,           class T1  = unit_t, class T2  = unit_t,
+          class T3  = unit_t, class T4  = unit_t, class T5  = unit_t,
+          class T6  = unit_t, class T7  = unit_t, class T8  = unit_t,
+          class T9  = unit_t, class T10 = unit_t, class T11 = unit_t,
+          class T12 = unit_t, class T13 = unit_t, class T14 = unit_t,
+          class T15 = unit_t, class T16 = unit_t, class T17 = unit_t,
+          class T18 = unit_t, class T19 = unit_t, class T20 = unit_t>
 struct variant_data {
+  using types = type_list<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+                          T13, T14, T15, T16, T17, T18, T19, T20>;
+
   union {
-    T0  v0;  T1  v1;  T2  v2;
-    T3  v3;  T4  v4;  T5  v5;
-    T6  v6;  T7  v7;  T8  v8;
-    T9  v9;  T10 v10; T11 v11;
-    T12 v12; T13 v13; T14 v14;
-    T15 v15; T16 v16; T17 v17;
-    T18 v18; T19 v19; T20 v20;
+    T0  v0;  T1  v1;  T2  v2;  T3  v3;  T4  v4;  T5  v5;  T6   v6;
+    T7  v7;  T8  v8;  T9  v9;  T10 v10; T11 v11; T12 v12; T13 v13;
+    T14 v14; T15 v15; T16 v16; T17 v17; T18 v18; T19 v19; T20 v20;
   };
 
   variant_data() {
@@ -86,6 +84,18 @@ struct variant_data {
   CAF_VARIANT_DATA_GETTER(18)
   CAF_VARIANT_DATA_GETTER(19)
   CAF_VARIANT_DATA_GETTER(20)
+
+  template <size_t N>
+  friend typename tl_at<types, N>::type& get(variant_data& x) {
+    std::integral_constant<int, N> token;
+    return x.get(token);
+  }
+
+  template <size_t N>
+  friend const typename tl_at<types, N>::type& get(const variant_data& x) {
+    std::integral_constant<int, N> token;
+    return x.get(token);
+  }
 };
 
 struct variant_data_destructor {
@@ -100,3 +110,5 @@ struct variant_data_destructor {
 } // namespace detail
 } // namespace caf
 
+#undef CAF_VARIANT_DATA_CONCAT
+#undef CAF_VARIANT_DATA_GETTER

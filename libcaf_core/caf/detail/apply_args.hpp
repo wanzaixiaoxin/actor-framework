@@ -74,6 +74,31 @@ auto apply_args_suffxied(F& f, detail::int_list<Is...>, Tuple& tup, Ts&&... xs)
   return f(get<Is>(tup)..., std::forward<Ts>(xs)...);
 }
 
+template <class Res, size_t Pos, size_t N>
+struct apply_helper {
+  template <class F, class Tuple>
+  static Res apply(size_t pos, F& f, Tuple& tup) {
+    return pos == Pos ? f(get<Pos>(tup))
+                      : apply_helper<Res, Pos + 1, N>::apply(pos, f, tup);
+  }
+};
+
+template <class Res, size_t N>
+struct apply_helper<Res, N, N> {
+  template <class F, class Tuple>
+  static Res apply(size_t, F& f, Tuple& tup) {
+    return f(get<N>(tup));
+  }
+};
+
+template <class F, class Tuple>
+auto apply(size_t pos, F& f, Tuple& xs) -> decltype(f(get<0>(xs))) {
+  using res_t = decltype(f(get<0>(xs)));
+  static constexpr size_t tuple_size = std::tuple_size<Tuple>::value;
+  static_assert(tuple_size > 0, "cannot apply elements from an empty tuple");
+  return apply_helper<res_t, 0, tuple_size - 1>::apply(pos, f, xs);
+}
+
 } // namespace detail
 } // namespace caf
 
