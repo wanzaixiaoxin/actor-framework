@@ -138,7 +138,8 @@ struct newb : public network::newb_base {
         write_event();
         break;
       case io::network::operation::propagate_error:
-        handle_error();
+        io_error(network::operation::propagate_error,
+                 make_error(sec::runtime_error));
     }
   }
 
@@ -156,8 +157,10 @@ struct newb : public network::newb_base {
       case network::operation::propagate_error: ; // nop
     }
     // Event handler reference no longer necessary.
-    if (!reading_ && !writing_)
+    if (!reading_ && !writing_) {
+      trans->shutdown(this, fd_);
       intrusive_ptr_release(this->ctrl());
+    }
   }
 
   void graceful_shutdown() override {
@@ -166,7 +169,7 @@ struct newb : public network::newb_base {
     if (state_.shutting_down)
       return;
     state_.shutting_down = true;
-    trans->shutdown(this, fd_);
+    stop_reading();
   }
 
   // -- base requirements ------------------------------------------------------
@@ -183,8 +186,6 @@ struct newb : public network::newb_base {
   void stop() override {
     CAF_PUSH_AID_FROM_PTR(this);
     CAF_LOG_TRACE("");
-    stop_reading();
-    stop_writing();
     graceful_shutdown();
   }
 
@@ -270,10 +271,6 @@ struct newb : public network::newb_base {
   void write_event() {
     if (trans->write_some(this) == network::rw_state::failure)
       io_error(network::operation::write, sec::runtime_error);
-  }
-
-  void handle_error() {
-    CAF_CRITICAL("got error to handle: not implemented");
   }
 
   /// Set a timeout for a protocol policy layer.
@@ -484,8 +481,10 @@ struct newb_acceptor : network::acceptor_base {
       case network::operation::propagate_error: ; // nop
     }
     // Quit if there is nothing left to do.
-    if (!reading_ && !writing_)
+    if (!reading_ && !writing_) {
+      accept_pol->shutdown(this, fd_);
       intrusive_ptr_release(this->ctrl());
+    }
   }
 
   void graceful_shutdown() override {
@@ -494,7 +493,7 @@ struct newb_acceptor : network::acceptor_base {
     if (state_.shutting_down)
       return;
     state_.shutting_down = true;
-    accept_pol->shutdown(this, fd_);
+    stop_reading();
   }
 
   // -- base requirements ------------------------------------------------------
@@ -514,8 +513,6 @@ struct newb_acceptor : network::acceptor_base {
   void stop() override {
     CAF_PUSH_AID_FROM_PTR(this);
     CAF_LOG_TRACE("");
-    stop_reading();
-    stop_writing();
     graceful_shutdown();
   }
 
