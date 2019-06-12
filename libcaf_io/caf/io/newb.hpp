@@ -259,6 +259,7 @@ struct newb : public network::newb_base {
   }
 
   void flush() {
+    start_timestamp(); // save the start timestamp for later
     trans->flush(this);
   }
 

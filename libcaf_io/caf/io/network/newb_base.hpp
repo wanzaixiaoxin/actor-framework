@@ -118,12 +118,50 @@ struct newb_base : public extend<scheduled_actor, newb_base>::template
     //this->delayed_send(this, timeout, atm, id);
   }
 
+  void start_timestamp() {
+    using namespace std::chrono;
+    auto ts = system_clock::now().time_since_epoch();
+    auto ms = duration_cast<milliseconds>(ts);
+    start_timestamps.push_back(ms);
+  }
+
+  void stop_timestamp_pre_quic() {
+    using namespace std::chrono;
+    auto ts = system_clock::now().time_since_epoch();
+    auto ms = duration_cast<milliseconds>(ts);
+    stop_timestamps_pre_quic.push_back(ms);
+  }
+
+  void stop_timestamp_post_quic() {
+    using namespace std::chrono;
+    auto ts = system_clock::now().time_since_epoch();
+    auto ms = duration_cast<milliseconds>(ts);
+    stop_timestamps_post_quic.push_back(ms);
+  }
+
+  std::vector<std::chrono::milliseconds>& get_start_timestamps() {
+    return start_timestamps;
+  }
+
+  std::vector<std::chrono::milliseconds>& get_stop_timestamps_pre_quic() {
+    return stop_timestamps_pre_quic;
+  }
+
+  std::vector<std::chrono::milliseconds>& get_stop_timestamps_post_quic() {
+    return stop_timestamps_post_quic;
+  }
+
   // -- members ----------------------------------------------------------------
 
   void init_newb();
 
   /// Override this to set the behavior of the broker.
   virtual behavior make_behavior();
+
+private:
+  std::vector<std::chrono::milliseconds> start_timestamps;
+  std::vector<std::chrono::milliseconds> stop_timestamps_pre_quic;
+  std::vector<std::chrono::milliseconds> stop_timestamps_post_quic;
 };
 
 } // namespace network
