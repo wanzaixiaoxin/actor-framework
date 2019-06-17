@@ -31,6 +31,10 @@ struct acceptor_base : public newb_base {
   virtual expected<actor>
   create_newb(network::native_socket sockfd, policy::transport_ptr pol,
               bool add_children_to_loop) = 0;
+
+  virtual void add_to_write_set(io::network::newb_base* newb) {}
+
+  virtual void remove_from_write_set(io::network::newb_base* newb) {}
 };
 
 } // namespace network
