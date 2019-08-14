@@ -31,16 +31,11 @@ config = [
     buildMatrix: [
         ['Linux', [
             builds: ['debug'],
-            tools: ['gcc4.8', 'gcc4.9', 'gcc5', 'gcc6', 'gcc7'],
-        ]],
-        ['Linux', [
-            builds: ['debug'],
-            tools: ['gcc8'],
-            extraSteps: ['coverageReport'],
+            tools: ['gcc4.8', 'gcc4.9', 'gcc5', 'gcc6', 'gcc7', 'gcc8', 'gcc9', 'clang4.0'],
         ]],
         ['Linux', [
             builds: ['release'],
-            tools: ['gcc8', 'clang'],
+            tools: ['gcc9', 'clang', 'clang4.0'],
         ]],
         ['macOS', [
             builds: ['debug', 'release'],
