@@ -30,16 +30,16 @@ config = [
     buildMatrix: [
         ['Linux', [
             builds: ['debug'],
-            tools: ['gcc4.8', 'gcc4.9', 'gcc5', 'gcc6', 'gcc7'],
+            tools: ['gcc4.8', 'gcc4.9', 'gcc5', 'gcc6', 'gcc7', 'gcc8'],
         ]],
         ['Linux', [
             builds: ['debug'],
-            tools: ['gcc8'],
+            tools: ['gcc9'],
             extraSteps: ['coverageReport'],
         ]],
         ['Linux', [
             builds: ['release'],
-            tools: ['gcc8', 'clang'],
+            tools: ['gcc9', 'clang'],
         ]],
         ['macOS', [
             builds: ['debug', 'release'],
