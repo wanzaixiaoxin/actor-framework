@@ -131,7 +131,8 @@ public:
   apply(T& x) {
     using type = detail::select_integer_type_t<sizeof(T),
                                                std::is_signed<T>::value>;
-    return apply_impl(reinterpret_cast<type&>(x));
+    auto y = static_cast<type>(x);
+    return apply_impl(y);
   }
 
   error apply(std::string& x) {

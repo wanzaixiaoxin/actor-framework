@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <type_traits>
 
@@ -40,6 +41,46 @@ namespace caf {
 namespace detail {
 namespace parser {
 
+template <class>
+struct read_floating_point_config;
+
+template <>
+struct read_floating_point_config<double> {
+  static constexpr int max_exponent = 308;
+
+  static constexpr int min_exponent = -324;
+
+  // Pre-computed powers of 2 for the scaling loop.
+  std::array<double, 9> power_table{{
+    1e1,
+    1e2,
+    1e4,
+    1e8,
+    1e16,
+    1e32,
+    1e64,
+    1e128,
+    1e256,
+  }};
+};
+
+template <>
+struct read_floating_point_config<float> {
+  static constexpr int max_exponent = 38;
+
+  static constexpr int min_exponent = -45;
+
+  // Pre-computed powers of 2 for the scaling loop.
+  std::array<float, 6> power_table{{
+    1e1f,
+    1e2f,
+    1e4f,
+    1e8f,
+    1e16f,
+    1e32f,
+  }};
+};
+
 /// Reads a floating point number (`float` or `double`).
 /// @param ps The parser state.
 /// @param consumer Sink for generated values.
@@ -49,8 +90,7 @@ template <class Iterator, class Sentinel, class Consumer, class ValueType>
 void read_floating_point(state<Iterator, Sentinel>& ps, Consumer&& consumer,
                          optional<ValueType> start_value,
                          bool negative = false) {
-  // Any exponent larger than 511 always overflows.
-  static constexpr int max_double_exponent = 511;
+  read_floating_point_config<ValueType> cfg;
   // We assume a simple integer until proven wrong.
   enum sign_t { plus, minus };
   sign_t sign;
@@ -79,27 +119,24 @@ void read_floating_point(state<Iterator, Sentinel>& ps, Consumer&& consumer,
       // 1) Fix the exponent.
       exp += dec_exp;
       // 2) Check whether exponent is in valid range.
-      if (exp < -max_double_exponent) {
+      if (exp < cfg.min_exponent) {
         ps.code = pec::exponent_underflow;
         return;
       }
-      if (exp > max_double_exponent) {
+      if (exp > cfg.max_exponent) {
         ps.code = pec::exponent_overflow;
         return;
       }
       // 3) Scale result.
-      // Pre-computed powers of 10 for the scaling loop.
-      static double powerTable[] = {1e1,  1e2,  1e4,   1e8,  1e16,
-                                    1e32, 1e64, 1e128, 1e256};
-      auto i = 0;
+      size_t i = 0;
       if (exp < 0) {
         for (auto n = -exp; n != 0; n >>= 1, ++i)
           if (n & 0x01)
-            result /= powerTable[i];
+            result /= cfg.power_table[i];
       } else {
         for (auto n = exp; n != 0; n >>= 1, ++i)
           if (n & 0x01)
-            result *= powerTable[i];
+            result *= cfg.power_table[i];
       }
       // 4) Fix sign and call consumer.
       consumer.value(sign == plus ? result : -result);

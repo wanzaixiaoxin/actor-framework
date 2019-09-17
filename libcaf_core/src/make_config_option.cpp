@@ -23,11 +23,6 @@
 #include "caf/config_value.hpp"
 #include "caf/optional.hpp"
 
-#define DEFAULT_META(type, parse_fun)                                          \
-  config_option::meta_state type##_meta_state{                                 \
-    default_config_option_check<type>, default_config_option_store<type>,      \
-    get_impl<type>, parse_fun, detail::type_name<type>()};
-
 using std::string;
 
 namespace caf {

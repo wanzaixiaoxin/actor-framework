@@ -64,6 +64,7 @@ set(LIBCAF_CORE_SRCS
   src/group_module.cpp
   src/inbound_path.cpp
   src/ini_consumer.cpp
+  src/init_fun_factory.cpp
   src/invoke_result_visitor.cpp
   src/ipv4_address.cpp
   src/ipv4_endpoint.cpp
@@ -189,6 +190,6 @@ if (CAF_BUILD_STATIC_ONLY OR CAF_BUILD_STATIC)
 endif ()
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/caf"
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.hpp"
 )

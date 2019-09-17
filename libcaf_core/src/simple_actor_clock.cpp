@@ -29,6 +29,143 @@ simple_actor_clock::event::~event() {
   // nop
 }
 
+simple_actor_clock::delayed_event::~delayed_event() {
+  // nop
+}
+
+simple_actor_clock::ordinary_timeout::ordinary_timeout(time_point due,
+                                                       strong_actor_ptr self,
+                                                       atom_value type,
+                                                       uint64_t id)
+  : delayed_event(ordinary_timeout_type, due),
+    self(std::move(self)),
+    type(type),
+    id(id) {
+  // nop
+}
+
+simple_actor_clock::ordinary_timeout::~ordinary_timeout() {
+  // nop
+}
+
+simple_actor_clock::multi_timeout::multi_timeout(time_point due,
+                                                 strong_actor_ptr self,
+                                                 atom_value type, uint64_t id)
+  : delayed_event(multi_timeout_type, due),
+    self(std::move(self)),
+    type(type),
+    id(id) {
+  // nop
+}
+
+simple_actor_clock::multi_timeout::~multi_timeout() {
+  // nop
+}
+
+simple_actor_clock::request_timeout::request_timeout(time_point due,
+                                                     strong_actor_ptr self,
+                                                     message_id id)
+  : delayed_event(request_timeout_type, due), self(std::move(self)), id(id) {
+  // nop
+}
+
+simple_actor_clock::request_timeout::~request_timeout() {
+  // nop
+}
+
+simple_actor_clock::actor_msg::actor_msg(time_point due,
+                                         strong_actor_ptr receiver,
+                                         mailbox_element_ptr content)
+  : delayed_event(actor_msg_type, due),
+    receiver(std::move(receiver)),
+    content(std::move(content)) {
+  // nop
+}
+
+simple_actor_clock::actor_msg::~actor_msg() {
+  // nop
+}
+
+simple_actor_clock::group_msg::group_msg(time_point due, group target,
+                                         strong_actor_ptr sender,
+                                         message content)
+  : delayed_event(group_msg_type, due),
+    target(std::move(target)),
+    sender(std::move(sender)),
+    content(std::move(content)) {
+  // nop
+}
+
+simple_actor_clock::group_msg::~group_msg() {
+  // nop
+}
+
+simple_actor_clock::cancellation::cancellation(event_type t, actor_id aid)
+  : event(t), aid(aid) {
+  // nop
+}
+
+simple_actor_clock::cancellation::~cancellation() {
+  // nop
+}
+
+simple_actor_clock::ordinary_timeout_cancellation::
+  ordinary_timeout_cancellation(actor_id aid, atom_value type)
+  : cancellation(ordinary_timeout_cancellation_type, aid), type(type) {
+  // nop
+}
+
+simple_actor_clock::ordinary_timeout_cancellation::
+  ~ordinary_timeout_cancellation() {
+  // nop
+}
+
+simple_actor_clock::multi_timeout_cancellation::multi_timeout_cancellation(
+  actor_id aid, atom_value type, uint64_t id)
+  : cancellation(ordinary_timeout_cancellation_type, aid), type(type), id(id) {
+  // nop
+}
+
+simple_actor_clock::multi_timeout_cancellation::~multi_timeout_cancellation() {
+  // nop
+}
+
+simple_actor_clock::request_timeout_cancellation::request_timeout_cancellation(
+  actor_id aid, message_id id)
+  : cancellation(request_timeout_cancellation_type, aid), id(id) {
+  // nop
+}
+
+simple_actor_clock::request_timeout_cancellation::
+  ~request_timeout_cancellation() {
+  // nop
+}
+
+simple_actor_clock::timeouts_cancellation::timeouts_cancellation(actor_id aid)
+  : cancellation(timeouts_cancellation_type, aid) {
+  // nop
+}
+
+simple_actor_clock::timeouts_cancellation::~timeouts_cancellation() {
+  // nop
+}
+
+simple_actor_clock::drop_all::drop_all() : event(drop_all_type) {
+  // nop
+}
+
+simple_actor_clock::drop_all::~drop_all() {
+  // nop
+}
+
+simple_actor_clock::shutdown::shutdown() : event(shutdown_type) {
+  // nop
+}
+
+simple_actor_clock::shutdown::~shutdown() {
+  // nop
+}
+
 void simple_actor_clock::set_ordinary_timeout(time_point t,
                                               abstract_actor* self,
                                               atom_value type, uint64_t id) {

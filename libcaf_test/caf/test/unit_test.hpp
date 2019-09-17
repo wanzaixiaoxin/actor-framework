@@ -30,14 +30,13 @@
 #include <vector>
 
 #include "caf/deep_to_string.hpp"
+#include "caf/detail/arg_wrapper.hpp"
+#include "caf/detail/type_traits.hpp"
 #include "caf/fwd.hpp"
 #include "caf/logger.hpp"
 #include "caf/optional.hpp"
 #include "caf/term.hpp"
 #include "caf/variant.hpp"
-
-#include "caf/detail/arg_wrapper.hpp"
-#include "caf/detail/type_traits.hpp"
 
 namespace caf {
 namespace test {
@@ -156,6 +155,32 @@ public:
 
 private:
   // -- automagic unboxing of sum types ----------------------------------------
+
+  template <class T, class U>
+  detail::enable_if_t<detail::is_comparable<T, U>::value, bool>
+  cmp(const expected<T>& x, const U& y, std::false_type,
+      std::false_type) const {
+    if (!x)
+      return Operator::default_value;
+    return (*this)(*x, y);
+  }
+
+  template <class T, class U>
+  detail::enable_if_t<detail::is_comparable<caf::error, U>::value, bool>
+  cmp(const expected<T>& x, const U& y, std::false_type,
+      std::false_type) const {
+    if (!x)
+      return (*this)(x.error(), y);
+    return Operator::default_value;
+  }
+
+  template <class T, class U>
+  bool cmp(const optional<T>& x, const U& y, std::false_type,
+           std::false_type) const {
+    if (!x)
+      return Operator::default_value;
+    return (*this)(*x, y);
+  }
 
   template <class T, class U>
   bool cmp(const T& x, const U& y, std::false_type, std::false_type) const {

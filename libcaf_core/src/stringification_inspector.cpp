@@ -186,7 +186,7 @@ void stringification_inspector::consume_int(int64_t x) {
   if (x >= 0)
     return consume_int(static_cast<uint64_t>(x));
   result_ += '-';
-  auto begin = result_.size();
+  auto begin = static_cast<ptrdiff_t>(result_.size());
   result_ += -(x % 10) + '0';
   x /= 10;
   while (x != 0) {
@@ -197,7 +197,7 @@ void stringification_inspector::consume_int(int64_t x) {
 }
 
 void stringification_inspector::consume_int(uint64_t x) {
-  auto begin = result_.size();
+  auto begin = static_cast<ptrdiff_t>(result_.size());
   result_ += (x % 10) + '0';
   x /= 10;
   while (x != 0) {

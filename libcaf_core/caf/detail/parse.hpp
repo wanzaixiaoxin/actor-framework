@@ -68,7 +68,8 @@ void parse(parse_state& ps, uint64_t& x);
 template <class T>
 detail::enable_if_t<std::is_integral<T>::value> parse(parse_state& ps, T& x) {
   using squashed_type = squashed_int_t<T>;
-  return parse(ps, reinterpret_cast<squashed_type&>(x));
+  auto y = static_cast<squashed_type>(x);
+  return parse(ps, y);
 }
 
 // -- floating point types -----------------------------------------------------

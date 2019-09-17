@@ -135,8 +135,7 @@ error parse(string_view str, uri& dest) {
   parse(ps, dest);
   if (ps.code == pec::success)
     return none;
-  return make_error(ps.code, static_cast<size_t>(ps.line),
-                    static_cast<size_t>(ps.column));
+  return make_error(ps.code, ps.line, ps.column);
 }
 
 } // namespace caf

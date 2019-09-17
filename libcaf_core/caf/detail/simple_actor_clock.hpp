@@ -87,6 +87,8 @@ public:
       // nop
     }
 
+    ~delayed_event() override;
+
     /// Timestamp when this event should trigger.
     time_point due;
 
@@ -100,13 +102,9 @@ public:
     static constexpr bool cancellable = true;
 
     ordinary_timeout(time_point due, strong_actor_ptr self, atom_value type,
-                     uint64_t id)
-      : delayed_event(ordinary_timeout_type, due),
-        self(std::move(self)),
-        type(type),
-        id(id) {
-      // nop
-    }
+                     uint64_t id);
+
+    ~ordinary_timeout() override;
 
     strong_actor_ptr self;
     atom_value type;
@@ -119,13 +117,9 @@ public:
     static constexpr bool cancellable = true;
 
     multi_timeout(time_point due, strong_actor_ptr self, atom_value type,
-                  uint64_t id)
-      : delayed_event(multi_timeout_type, due),
-        self(std::move(self)),
-        type(type),
-        id(id) {
-      // nop
-    }
+                  uint64_t id);
+
+    ~multi_timeout() override;
 
     strong_actor_ptr self;
     atom_value type;
@@ -137,12 +131,9 @@ public:
   struct request_timeout final : delayed_event {
     static constexpr bool cancellable = true;
 
-    request_timeout(time_point due, strong_actor_ptr self, message_id id)
-      : delayed_event(request_timeout_type, due),
-        self(std::move(self)),
-        id(id) {
-      // nop
-    }
+    request_timeout(time_point due, strong_actor_ptr self, message_id id);
+
+    ~request_timeout() override;
 
     strong_actor_ptr self;
     message_id id;
@@ -153,12 +144,9 @@ public:
     static constexpr bool cancellable = false;
 
     actor_msg(time_point due, strong_actor_ptr receiver,
-              mailbox_element_ptr content)
-      : delayed_event(actor_msg_type, due),
-        receiver(std::move(receiver)),
-        content(std::move(content)) {
-      // nop
-    }
+              mailbox_element_ptr content);
+
+    ~actor_msg() override;
 
     strong_actor_ptr receiver;
     mailbox_element_ptr content;
@@ -169,13 +157,9 @@ public:
     static constexpr bool cancellable = false;
 
     group_msg(time_point due, group target, strong_actor_ptr sender,
-              message content)
-      : delayed_event(group_msg_type, due),
-        target(std::move(target)),
-        sender(std::move(sender)),
-        content(std::move(content)) {
-      // nop
-    }
+              message content);
+
+    ~group_msg() override;
 
     group target;
     strong_actor_ptr sender;
@@ -184,31 +168,27 @@ public:
 
   /// Cancels a delayed event.
   struct cancellation : event {
-    cancellation(event_type t, actor_id aid) : event(t), aid(aid) {
-      //nop
-    }
+    cancellation(event_type t, actor_id aid);
+
+    ~cancellation() override;
 
     actor_id aid;
   };
 
   /// Cancels matching ordinary timeouts.
   struct ordinary_timeout_cancellation final : cancellation {
-    ordinary_timeout_cancellation(actor_id aid, atom_value type)
-      : cancellation(ordinary_timeout_cancellation_type, aid), type(type) {
-      // nop
-    }
+    ordinary_timeout_cancellation(actor_id aid, atom_value type);
+
+    ~ordinary_timeout_cancellation() override;
 
     atom_value type;
   };
 
   /// Cancels the matching multi timeout.
   struct multi_timeout_cancellation final : cancellation {
-    multi_timeout_cancellation(actor_id aid, atom_value type, uint64_t id)
-      : cancellation(ordinary_timeout_cancellation_type, aid),
-        type(type),
-        id(id) {
-      // nop
-    }
+    multi_timeout_cancellation(actor_id aid, atom_value type, uint64_t id);
+
+    ~multi_timeout_cancellation() override;
 
     atom_value type;
     uint64_t id;
@@ -216,34 +196,32 @@ public:
 
   /// Cancels a `sec::request_timeout` error.
   struct request_timeout_cancellation final : cancellation {
-    request_timeout_cancellation(actor_id aid, message_id id)
-      : cancellation(request_timeout_cancellation_type, aid), id(id) {
-      // nop
-    }
+    request_timeout_cancellation(actor_id aid, message_id id);
+
+    ~request_timeout_cancellation() override;
 
     message_id id;
   };
 
   /// Cancels all timeouts for an actor.
   struct timeouts_cancellation final : cancellation {
-    timeouts_cancellation(actor_id aid)
-      : cancellation(timeouts_cancellation_type, aid) {
-      // nop
-    }
+    timeouts_cancellation(actor_id aid);
+
+    ~timeouts_cancellation() override;
   };
 
   /// Cancels all timeouts and messages.
   struct drop_all final : event {
-    drop_all() : event(drop_all_type) {
-      // nop
-    }
+    drop_all();
+
+    ~drop_all() override;
   };
 
   /// Shuts down the actor clock.
   struct shutdown final : event {
-    shutdown() : event(shutdown_type) {
-      // nop
-    }
+    shutdown();
+
+    ~shutdown() override;
   };
 
   // -- properties -------------------------------------------------------------

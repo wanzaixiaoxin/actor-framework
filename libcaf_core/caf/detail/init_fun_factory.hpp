@@ -20,11 +20,11 @@
 
 #include <tuple>
 
-#include "caf/fwd.hpp"
-
+#include "caf/behavior.hpp"
 #include "caf/detail/apply_args.hpp"
 #include "caf/detail/spawn_fwd.hpp"
 #include "caf/detail/unique_function.hpp"
+#include "caf/fwd.hpp"
 
 namespace caf {
 namespace detail {
@@ -41,6 +41,8 @@ public:
   // -- constructors, destructors, and assignment operators --------------------
 
   using super::super;
+
+  ~init_fun_factory_helper_base() override;
 
   // -- properties -------------------------------------------------------------
 

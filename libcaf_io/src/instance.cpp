@@ -385,6 +385,9 @@ bool instance::handle(execution_unit* ctx, connection_handle hdl, header& hdr,
           && last_hop != source_node
           && tbl_.add_indirect(last_hop, source_node))
         callee_.learned_new_node_indirectly(source_node);
+#ifdef CAF_CLANG
+      OS_FALLTHROUGH;
+#endif // CAF_CLANG
     }
     // fall through
     case message_type::direct_message: {

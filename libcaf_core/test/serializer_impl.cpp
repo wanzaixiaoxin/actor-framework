@@ -29,6 +29,7 @@
 #include "caf/actor_system_config.hpp"
 #include "caf/binary_serializer.hpp"
 #include "caf/byte.hpp"
+#include "caf/detail/safe_equal.hpp"
 #include "caf/duration.hpp"
 #include "caf/timestamp.hpp"
 
@@ -57,7 +58,7 @@ struct test_data {
   }
 
   test_data()
-    : test_data(-345, -1234567890123456789ll, 3.45, 54.3,
+    : test_data(-345, -1234567890123456789ll, 3.45f, 54.3,
                 caf::duration(caf::time_unit::seconds, 123),
                 caf::timestamp{
                   caf::timestamp::duration{1478715821 * 1000000000ll}},
@@ -75,7 +76,7 @@ struct test_data {
   std::string str_;
 
   friend bool operator==(const test_data& data, const test_data& other) {
-    return (data.f64_ == other.f64_ && data.i32_ == other.i32_
+    return (detail::safe_equal(data.f64_, other.f64_) && data.i32_ == other.i32_
             && data.i64_ == other.i64_ && data.str_ == other.str_
             && data.te_ == other.te_ && data.ts_ == other.ts_);
   }

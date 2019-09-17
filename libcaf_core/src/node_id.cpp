@@ -267,7 +267,8 @@ optional<node_id> make_node_id(uint32_t process_id,
     // Read two characters, each representing 4 bytes.
     if (!isxdigit(host_hash[i]) || !isxdigit(host_hash[i + 1]))
       return none;
-    host_id[i / 2] = (xvalue(host_hash[i]) << 4) | xvalue(host_hash[i + 1]);
+    auto tmp = (xvalue(host_hash[i]) << 4) | xvalue(host_hash[i + 1]);
+    host_id[i / 2] = static_cast<uint8_t>(tmp);
   }
   if (!node_data::valid(host_id))
     return none;
