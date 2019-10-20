@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(caf C CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 include(CheckCSourceCompiles)
 include(CheckCSourceRuns)
 
@@ -199,32 +203,6 @@ endif()
 #                                compiler setup                                #
 ################################################################################
 
-# check for g++ >= 4.8 or clang++ > = 3.2
-if(NOT WIN32 AND NOT CAF_NO_COMPILER_CHECK AND NOT CMAKE_CROSSCOMPILING)
-  try_run(ProgramResult
-          CompilationSucceeded
-          "${CMAKE_CURRENT_BINARY_DIR}"
-          "${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_compiler_version.cpp"
-          RUN_OUTPUT_VARIABLE CompilerVersion)
-  if(NOT CompilationSucceeded OR NOT ProgramResult EQUAL 0)
-    message(FATAL_ERROR "Cannot determine compiler version")
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if(CompilerVersion VERSION_GREATER 4.7)
-      message(STATUS "Found g++ version ${CompilerVersion}")
-    else()
-      message(FATAL_ERROR "g++ >= 4.8 required (found: ${CompilerVersion})")
-    endif()
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    if(CompilerVersion VERSION_GREATER 3.1)
-      message(STATUS "Found clang++ version ${CompilerVersion}")
-    else()
-      message(FATAL_ERROR "clang++ >= 3.2 required (found: ${CompilerVersion})")
-    endif()
-  else()
-    message(FATAL_ERROR "Your C++ compiler does not support C++17 "
-                        "or is not supported")
-  endif()
-endif()
 # set optional build flags
 # increase max. template depth on GCC and Clang
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang"
@@ -300,42 +278,9 @@ else()
   endif()
 endif()
 
-# add -stdlib=libc++ when using Clang if possible
-if(NOT CAF_NO_AUTO_LIBCPP AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CXXFLAGS_BACKUP "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
-  try_run(ProgramResult
-          CompilationSucceeded
-          "${CMAKE_CURRENT_BINARY_DIR}"
-          "${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_compiler_version.cpp"
-          RUN_OUTPUT_VARIABLE CompilerVersion)
-  if(NOT CompilationSucceeded OR NOT ProgramResult EQUAL 0)
-    message(STATUS "Use clang with GCC' libstdc++")
-  else()
-    message(STATUS "Automatically added '-stdlib=libc++' flag "
-                   "(CAF_NO_AUTO_LIBCPP not defined)")
-  build_string("EXTRA_FLAGS" "-stdlib=libc++")
-  endif()
-  # restore CXX flags
-  set(CMAKE_CXX_FLAGS "${CXXFLAGS_BACKUP}")
-endif()
 # enable address sanitizer if requested by the user
 if(CAF_ENABLE_ADDRESS_SANITIZER AND NOT WIN32)
-  # check whether address sanitizer is available
-  set(CXXFLAGS_BACKUP "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
-  try_run(ProgramResult
-          CompilationSucceeded
-          "${CMAKE_CURRENT_BINARY_DIR}"
-          "${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_compiler_version.cpp")
-  if(NOT CompilationSucceeded)
-    message(WARNING "Address Sanitizer is not available on selected compiler")
-  else()
-    message(STATUS "Enable Address Sanitizer")
-    build_string("EXTRA_FLAGS" "-fsanitize=address -fno-omit-frame-pointer")
-  endif()
-  # restore CXX flags
-  set(CMAKE_CXX_FLAGS "${CXXFLAGS_BACKUP}")
+  build_string("EXTRA_FLAGS" "-fsanitize=address -fno-omit-frame-pointer")
 endif()
 # -pthread is ignored on MacOSX but required on other platforms
 if(NOT APPLE AND NOT WIN32)
@@ -372,11 +317,7 @@ if(CAF_IOS_DEPLOYMENT_TARGET)
 endif()
 # check if the user provided CXXFLAGS, set defaults otherwise
 if(NOT CMAKE_CXX_FLAGS)
-  set(CMAKE_CXX_FLAGS                   "-std=c++17 -Wextra -Wall -pedantic ${EXTRA_FLAGS}")
-endif()
-if (NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=")
-  message(STATUS "Supplied CXXFLAGS do not contain a C++ standard, setting std to c++17")
-  set(CMAKE_CXX_FLAGS                   "-std=c++17 ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS                   "-Wextra -Wall -pedantic ${EXTRA_FLAGS}")
 endif()
 if(NOT CMAKE_CXX_FLAGS_DEBUG)
   set(CMAKE_CXX_FLAGS_DEBUG             "-O0 -g")

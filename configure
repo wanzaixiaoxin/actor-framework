@@ -259,9 +259,6 @@ while [ $# -ne 0 ]; do
         --no-compiler-check)
             append_cache_entry CAF_NO_COMPILER_CHECK BOOL yes
             ;;
-        --no-auto-libc++)
-            append_cache_entry CAF_NO_AUTO_LIBCPP BOOL yes
-            ;;
         --no-exceptions)
             append_cache_entry CAF_NO_EXCEPTIONS BOOL yes
             ;;

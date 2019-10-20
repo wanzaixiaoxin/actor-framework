@@ -39,7 +39,7 @@ config = [
         ]],
         ['Linux', [
             builds: ['release'],
-            tools: ['gcc8', 'clang'],
+            tools: ['gcc8'], // TODO: currently, putting clang here runs GCC
         ]],
         ['macOS', [
             builds: ['debug', 'release'],
