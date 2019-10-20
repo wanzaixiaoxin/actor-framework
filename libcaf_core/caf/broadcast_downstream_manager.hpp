@@ -204,8 +204,7 @@ public:
         return;
       // Push data from the global buffer to path buffers.
       auto& st = y.second;
-      // TODO: replace with `if constexpr` when switching to C++17
-      if (std::is_same<select_type, detail::select_all>::value) {
+      if constexpr (std::is_same<select_type, detail::select_all>::value) {
         st.buf.insert(st.buf.end(), buf.begin(), buf.end());
       } else {
         for (auto& piece : buf)
@@ -276,8 +275,7 @@ private:
         // Don't enqueue new data into a closing path.
         if (!x.second->closing) {
           // Push data from the global buffer to path buffers.
-          // TODO: replace with `if constexpr` when switching to C++17
-          if (std::is_same<select_type, detail::select_all>::value) {
+          if constexpr (std::is_same<select_type, detail::select_all>::value) {
             st.buf.insert(st.buf.end(), chunk.begin(), chunk.end());
           } else {
             for (auto& piece : chunk)

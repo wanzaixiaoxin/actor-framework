@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <vector>
 #include <algorithm>
 #include <functional>
+#include <vector>
 
 #include "caf/detail/comparable.hpp"
 #include "caf/detail/type_traits.hpp"
@@ -77,7 +77,7 @@ public:
 
   template <class InputIterator>
   unordered_flat_map(InputIterator first, InputIterator last)
-      : xs_(first, last) {
+    : xs_(first, last) {
     // nop
   }
 
@@ -180,9 +180,7 @@ public:
 
   iterator insert(const_iterator hint, value_type x) {
     auto i = find(x.first);
-    return i == end()
-           ? xs_.insert(gcc48_iterator_workaround(hint), std::move(x))
-           : i;
+    return i == end() ? xs_.insert(hint, std::move(x)) : i;
   }
 
   template <class InputIterator>
@@ -204,18 +202,15 @@ public:
   // -- removal ----------------------------------------------------------------
 
   iterator erase(const_iterator i) {
-    return xs_.erase(gcc48_iterator_workaround(i));
+    return xs_.erase(i);
   }
 
   iterator erase(const_iterator first, const_iterator last) {
-    return xs_.erase(gcc48_iterator_workaround(first),
-                     gcc48_iterator_workaround(last));
+    return xs_.erase(first, last);
   }
 
   size_type erase(const key_type& x) {
-    auto pred = [&](const value_type& y) {
-      return x == y.first;
-    };
+    auto pred = [&](const value_type& y) { return x == y.first; };
     auto i = std::remove_if(begin(), end(), pred);
     if (i == end())
       return 0;
@@ -250,9 +245,7 @@ public:
 
   template <class K>
   iterator find(const K& key) {
-    auto pred = [&](const value_type& y) {
-      return key == y.first;
-    };
+    auto pred = [&](const value_type& y) { return key == y.first; };
     return std::find_if(xs_.begin(), xs_.end(), pred);
   }
 
@@ -269,33 +262,6 @@ public:
   }
 
 private:
-  // GCC < 4.9 has a broken STL: vector::erase accepts iterator instead of
-  // const_iterator.
-  // TODO: remove when dropping support for GCC 4.8.
-  template <class Iter>
-  struct is_valid_erase_iter {
-    template <class U>
-    static auto sfinae(U* x) -> decltype(std::declval<vector_type&>().erase(*x),
-                                         std::true_type{});
-
-    template <class U>
-    static auto sfinae(...) -> std::false_type;
-
-    static constexpr bool value = decltype(sfinae<Iter>(nullptr))::value;
-  };
-
-  template <class I, class E = enable_if_t<!is_valid_erase_iter<I>::value>>
-  iterator gcc48_iterator_workaround(I i) {
-    auto j = begin();
-    std::advance(j, std::distance(cbegin(), i));
-    return j;
-  }
-
-  template <class I, class E = enable_if_t<is_valid_erase_iter<I>::value>>
-  const_iterator gcc48_iterator_workaround(I i) {
-    return i;
-  }
-
   vector_type xs_;
 };
 
@@ -317,8 +283,8 @@ bool operator!=(const unordered_flat_map<K, T, A>& xs,
 template <class K, class T, class A>
 bool operator<(const unordered_flat_map<K, T, A>& xs,
                const unordered_flat_map<K, T, A>& ys) {
-  return std::lexicographical_compare(xs.begin(), xs.end(),
-                                      ys.begin(), ys.end());
+  return std::lexicographical_compare(xs.begin(), xs.end(), ys.begin(),
+                                      ys.end());
 }
 
 /// @relates unordered_flat_map
@@ -330,5 +296,4 @@ bool operator>=(const unordered_flat_map<K, T, A>& xs,
 
 } // namespace detail
 } // namespace caf
-
 

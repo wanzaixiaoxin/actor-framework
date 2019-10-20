@@ -30,12 +30,9 @@
 
 using namespace caf;
 
-namespace {
+using namespace std::literals;
 
-// TODO: switch to std::operator""s when switching to C++14
-std::string operator"" _s(const char* str, size_t size) {
-  return std::string(str, size);
-}
+namespace {
 
 struct fixture {
   settings x;
@@ -137,9 +134,9 @@ CAF_TEST(put) {
   CAF_CHECK(x.contains("foo"));
   CAF_CHECK(x.contains("logger"));
   CAF_CHECK(x.contains("one"));
-  CAF_CHECK_EQUAL(unpack(x, "foo"), "bar"_s);
+  CAF_CHECK_EQUAL(unpack(x, "foo"), "bar"s);
   CAF_CHECK_EQUAL(unpack(x, "logger", "console"), atom("none"));
-  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three"), "four"_s);
+  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three"), "four"s);
   put(x, "logger.console", atom("trace"));
   CAF_CHECK_EQUAL(unpack(x, "logger", "console"), atom("trace"));
 }
@@ -152,9 +149,9 @@ CAF_TEST(put missing) {
   CAF_CHECK(x.contains("foo"));
   CAF_CHECK(x.contains("logger"));
   CAF_CHECK(x.contains("one"));
-  CAF_CHECK_EQUAL(unpack(x, "foo"), "bar"_s);
+  CAF_CHECK_EQUAL(unpack(x, "foo"), "bar"s);
   CAF_CHECK_EQUAL(unpack(x, "logger", "console"), atom("none"));
-  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three"), "four"_s);
+  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three"), "four"s);
   put_missing(x, "logger.console", atom("trace"));
   CAF_CHECK_EQUAL(unpack(x, "logger", "console"), atom("none"));
 }
@@ -176,7 +173,7 @@ CAF_TEST(put dictionary) {
   put_dictionary(x, "foo.bar").emplace("value", 42);
   CAF_CHECK_EQUAL(unpack(x, "foo", "bar", "value"), 42);
   put_dictionary(x, "one.two.three").emplace("four", "five");
-  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three", "four"), "five"_s);
+  CAF_CHECK_EQUAL(unpack(x, "one", "two", "three", "four"), "five"s);
 }
 
 CAF_TEST(get and get_if) {
@@ -184,7 +181,7 @@ CAF_TEST(get and get_if) {
   CAF_CHECK(get_if(&x, "hello") != nullptr);
   CAF_CHECK(get_if<atom_value>(&x, "hello") == none);
   CAF_REQUIRE(get_if<std::string>(&x, "hello") != none);
-  CAF_CHECK(get<std::string>(x, "hello") == "world"_s);
+  CAF_CHECK(get<std::string>(x, "hello") == "world"s);
   CAF_CHECK(get_if(&x, "logger.console") != nullptr);
   CAF_CHECK(get_if<std::string>(&x, "logger.console") == none);
   CAF_REQUIRE(get_if<atom_value>(&x, "logger.console") != none);
@@ -197,9 +194,9 @@ CAF_TEST(get and get_if) {
 
 CAF_TEST(get_or) {
   fill();
-  CAF_CHECK_EQUAL(get_or(x, "hello", "nobody"), "world"_s);
+  CAF_CHECK_EQUAL(get_or(x, "hello", "nobody"), "world"s);
   CAF_CHECK_EQUAL(get_or(x, "hello", atom("nobody")), atom("nobody"));
-  CAF_CHECK_EQUAL(get_or(x, "goodbye", "nobody"), "nobody"_s);
+  CAF_CHECK_EQUAL(get_or(x, "goodbye", "nobody"), "nobody"s);
 }
 
 CAF_TEST(custom type) {

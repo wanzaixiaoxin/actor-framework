@@ -79,8 +79,7 @@ void parse_sequence(string_parser_state&) {
 template <class T, class... Ts>
 void parse_sequence(string_parser_state& ps, T&& x, Ts&&... xs) {
   parse(ps, x);
-  // TODO: use `if constexpr` when switching to C++17
-  if (sizeof...(Ts) > 0) {
+  if constexpr (sizeof...(Ts) > 0) {
     CAF_ASSERT(ps.code != pec::success);
     if (ps.code == pec::trailing_character)
       parse_sequence(ps, std::forward<Ts>(xs)...);

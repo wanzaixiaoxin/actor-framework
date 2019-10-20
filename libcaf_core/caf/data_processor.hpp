@@ -514,8 +514,7 @@ public:
 
   template <class F, class... Ts>
   error operator()(meta::save_callback_t<F> x, Ts&&... xs) {
-    // TODO: use `if constexpr` when switching to C++17.
-    if (Derived::reads_state)
+    if constexpr (Derived::reads_state)
       if (auto err = x.fun())
         return err;
     return dref()(std::forward<Ts>(xs)...);
@@ -523,8 +522,7 @@ public:
 
   template <class F, class... Ts>
   error operator()(meta::load_callback_t<F> x, Ts&&... xs) {
-    // TODO: use `if constexpr` when switching to C++17.
-    if (Derived::writes_state)
+    if constexpr (Derived::writes_state)
       if (auto err = x.fun())
         return err;
     return dref()(std::forward<Ts>(xs)...);

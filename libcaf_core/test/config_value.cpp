@@ -43,6 +43,8 @@ using std::string;
 
 using namespace caf;
 
+using namespace std::literals;
+
 namespace {
 
 using list = config_value::list;
@@ -77,18 +79,13 @@ config_value cfg_lst(Ts&&... xs) {
   return config_value{std::move(lst)};
 }
 
-// TODO: switch to std::operator""s when switching to C++14
-string operator"" _s(const char* str, size_t size) {
-  return string(str, size);
-}
-
 } // namespace
 
 CAF_TEST(default_constructed) {
   config_value x;
   CAF_CHECK_EQUAL(holds_alternative<int64_t>(x), true);
   CAF_CHECK_EQUAL(get<int64_t>(x), 0);
-  CAF_CHECK_EQUAL(x.type_name(), "integer"_s);
+  CAF_CHECK_EQUAL(x.type_name(), "integer"s);
 }
 
 CAF_TEST(positive integer) {
@@ -142,7 +139,7 @@ CAF_TEST(homogeneous list) {
   auto ys = config_value{integer_list{1, 2, 3}};
   CAF_CHECK_EQUAL(xs, ys);
   CAF_CHECK_EQUAL(to_string(xs), "[1, 2, 3]");
-  CAF_CHECK_EQUAL(xs.type_name(), "list"_s);
+  CAF_CHECK_EQUAL(xs.type_name(), "list"s);
   CAF_CHECK_EQUAL(holds_alternative<config_value::list>(xs), true);
   CAF_CHECK_EQUAL(holds_alternative<integer_list>(xs), true);
   CAF_CHECK_EQUAL(get<integer_list>(xs), integer_list({1, 2, 3}));
@@ -151,19 +148,19 @@ CAF_TEST(homogeneous list) {
 CAF_TEST(heterogeneous list) {
   auto xs_value = make_config_value_list(1, "two", 3.0);
   auto& xs = xs_value.as_list();
-  CAF_CHECK_EQUAL(xs_value.type_name(), "list"_s);
+  CAF_CHECK_EQUAL(xs_value.type_name(), "list"s);
   CAF_REQUIRE_EQUAL(xs.size(), 3u);
   CAF_CHECK_EQUAL(xs[0], 1);
-  CAF_CHECK_EQUAL(xs[1], "two"_s);
+  CAF_CHECK_EQUAL(xs[1], "two"s);
   CAF_CHECK_EQUAL(xs[2], 3.0);
 }
 
 CAF_TEST(convert_to_list) {
   config_value x{int64_t{42}};
-  CAF_CHECK_EQUAL(x.type_name(), "integer"_s);
+  CAF_CHECK_EQUAL(x.type_name(), "integer"s);
   CAF_CHECK_EQUAL(to_string(x), "42");
   x.convert_to_list();
-  CAF_CHECK_EQUAL(x.type_name(), "list"_s);
+  CAF_CHECK_EQUAL(x.type_name(), "list"s);
   CAF_CHECK_EQUAL(to_string(x), "[42]");
   x.convert_to_list();
   CAF_CHECK_EQUAL(to_string(x), "[42]");
@@ -277,7 +274,7 @@ CAF_TEST(conversion to simple tuple) {
   CAF_REQUIRE(holds_alternative<tuple_type>(x));
   CAF_REQUIRE_NOT_EQUAL(get_if<tuple_type>(&x), none);
   CAF_CHECK_EQUAL(get<tuple_type>(x),
-                  std::make_tuple(size_t{42}, "hello world"_s));
+                  std::make_tuple(size_t{42}, "hello world"s));
 }
 
 CAF_TEST(conversion to nested tuple) {

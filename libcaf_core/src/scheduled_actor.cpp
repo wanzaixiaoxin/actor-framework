@@ -264,89 +264,58 @@ void scheduled_actor::intrusive_ptr_release_impl() {
   intrusive_ptr_release(ctrl());
 }
 
-namespace {
-
-// TODO: replace with generic lambda when switching to C++14
-struct upstream_msg_visitor {
-  scheduled_actor* selfptr;
-  upstream_msg& um;
-
-  template <class T>
-  void operator()(T& x) {
-    selfptr->handle_upstream_msg(um.slots, um.sender, x);
-  }
-};
-
-} // namespace
-
-intrusive::task_result scheduled_actor::mailbox_visitor::
-operator()(size_t, upstream_queue&, mailbox_element& x) {
+intrusive::task_result
+scheduled_actor::mailbox_visitor::operator()(size_t, upstream_queue&,
+                                             mailbox_element& x) {
   CAF_ASSERT(x.content().type_token() == make_type_token<upstream_msg>());
   self->current_mailbox_element(&x);
   CAF_LOG_RECEIVE_EVENT((&x));
   auto& um = x.content().get_mutable_as<upstream_msg>(0);
-  upstream_msg_visitor f{self, um};
+  auto f = [&](auto& y) { self->handle_upstream_msg(um.slots, um.sender, y); };
   visit(f, um.content);
   return ++handled_msgs < max_throughput ? intrusive::task_result::resume
                                          : intrusive::task_result::stop_all;
 }
 
-namespace {
-
-// TODO: replace with generic lambda when switching to C++14
-struct downstream_msg_visitor {
-  scheduled_actor* selfptr;
-  scheduled_actor::downstream_queue& qs_ref;
-  policy::downstream_messages::nested_queue_type& q_ref;
-  downstream_msg& dm;
-
-  template <class T>
-  intrusive::task_result operator()(T& x) {
-    auto& inptr = q_ref.policy().handler;
-    if (inptr == nullptr)
-      return intrusive::task_result::stop;
-    // Do *not* store a reference here since we potentially reset `inptr`.
-    auto mgr = inptr->mgr;
-    inptr->handle(x);
-    // The sender slot can be 0. This is the case for forced_close or
-    // forced_drop messages from stream aborters.
-    CAF_ASSERT(inptr->slots == dm.slots
-               || (dm.slots.sender == 0
-                   && dm.slots.receiver == inptr->slots.receiver));
-    // TODO: replace with `if constexpr` when switching to C++17
-    if (std::is_same<T, downstream_msg::close>::value
-        || std::is_same<T, downstream_msg::forced_close>::value) {
-      inptr.reset();
-      qs_ref.erase_later(dm.slots.receiver);
-      selfptr->erase_stream_manager(dm.slots.receiver);
-      if (mgr->done()) {
-        selfptr->erase_stream_manager(mgr);
-        mgr->stop();
-      }
-      return intrusive::task_result::stop;
-    }
-    else if (mgr->done()) {
-      CAF_LOG_DEBUG("path is done receiving and closes its manager");
-      selfptr->erase_stream_manager(mgr);
-      mgr->stop();
-      return intrusive::task_result::stop;
-    }
-    return intrusive::task_result::resume;
-  }
-};
-
-} // namespace
-
-intrusive::task_result scheduled_actor::mailbox_visitor::
-operator()(size_t, downstream_queue& qs, stream_slot,
-           policy::downstream_messages::nested_queue_type& q,
-           mailbox_element& x) {
+intrusive::task_result scheduled_actor::mailbox_visitor::operator()(
+  size_t, downstream_queue& qs, stream_slot,
+  policy::downstream_messages::nested_queue_type& q, mailbox_element& x) {
   CAF_LOG_TRACE(CAF_ARG(x) << CAF_ARG(handled_msgs));
   self->current_mailbox_element(&x);
   CAF_LOG_RECEIVE_EVENT((&x));
   CAF_ASSERT(x.content().type_token() == make_type_token<downstream_msg>());
   auto& dm = x.content().get_mutable_as<downstream_msg>(0);
-  downstream_msg_visitor f{self, qs, q, dm};
+  auto f = [&](auto& y) {
+    auto& inptr = q.policy().handler;
+    if (inptr == nullptr)
+      return intrusive::task_result::stop;
+    // Do *not* store a reference here since we potentially reset `inptr`.
+    auto mgr = inptr->mgr;
+    inptr->handle(y);
+    // The sender slot can be 0. This is the case for forced_close or
+    // forced_drop messages from stream aborters.
+    CAF_ASSERT(
+      inptr->slots == dm.slots
+      || (dm.slots.sender == 0 && dm.slots.receiver == inptr->slots.receiver));
+    using type = std::decay_t<decltype(y)>;
+    if constexpr (std::is_same<type, downstream_msg::close>::value
+                  || std::is_same<type, downstream_msg::forced_close>::value) {
+      inptr.reset();
+      qs.erase_later(dm.slots.receiver);
+      self->erase_stream_manager(dm.slots.receiver);
+      if (mgr->done()) {
+        self->erase_stream_manager(mgr);
+        mgr->stop();
+      }
+      return intrusive::task_result::stop;
+    } else if (mgr->done()) {
+      CAF_LOG_DEBUG("path is done receiving and closes its manager");
+      self->erase_stream_manager(mgr);
+      mgr->stop();
+      return intrusive::task_result::stop;
+    }
+    return intrusive::task_result::resume;
+  };
   auto res = visit(f, dm.content);
   return ++handled_msgs < max_throughput ? res
                                          : intrusive::task_result::stop_all;
@@ -851,16 +820,14 @@ void scheduled_actor::push_to_cache(mailbox_element_ptr ptr) {
   using namespace intrusive;
   auto& p = mailbox_.queue().policy();
   auto& qs = mailbox_.queue().queues();
-  // TODO: use generic lambda to avoid code duplication when switching to C++14
-  if (p.id_of(*ptr) == normal_queue_index) {
-    auto& q = std::get<normal_queue_index>(qs);
+  auto f = [&](auto& q) {
     q.inc_total_task_size(q.policy().task_size(*ptr));
     q.cache().push_back(ptr.release());
-  } else {
-    auto& q = std::get<normal_queue_index>(qs);
-    q.inc_total_task_size(q.policy().task_size(*ptr));
-    q.cache().push_back(ptr.release());
-  }
+  };
+  if (p.id_of(*ptr) == normal_queue_index)
+    f(std::get<normal_queue_index>(qs));
+  else
+    f(std::get<normal_queue_index>(qs));
 }
 
 scheduled_actor::normal_queue& scheduled_actor::get_normal_queue() {

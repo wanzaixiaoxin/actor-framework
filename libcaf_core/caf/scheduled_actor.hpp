@@ -760,8 +760,7 @@ public:
         return;
       }
       CAF_LOG_INFO("no manager found:" << CAF_ARG(slots));
-      // TODO: replace with `if constexpr` when switching to C++17
-      if (std::is_same<T, upstream_msg::ack_batch>::value) {
+      if constexpr (std::is_same<T, upstream_msg::ack_batch>::value) {
         // Make sure the other actor does not falsely believe us a source.
         inbound_path::emit_irregular_shutdown(this, slots, current_sender(),
                                               sec::invalid_upstream);

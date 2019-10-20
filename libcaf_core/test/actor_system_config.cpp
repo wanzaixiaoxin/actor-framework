@@ -34,16 +34,9 @@
 
 using namespace caf;
 
+using namespace std::literals;
+
 namespace {
-
-// TODO: switch to std::operator""s when switching to C++14
-std::string operator"" _s(const char* str, size_t size) {
-  return std::string{str, size};
-}
-
-timespan operator"" _ms(unsigned long long x) {
-  return std::chrono::duration_cast<timespan>(std::chrono::milliseconds(x));
-}
 
 uri operator"" _u(const char* str, size_t size) {
   return unbox(make_uri(string_view{str, size}));
@@ -252,15 +245,15 @@ CAF_TEST(basic and basic containers options) {
   CHECK_SYNCED(some_bool, true);
   CHECK_SYNCED(some_double, 1e23);
   CHECK_SYNCED(some_atom_value, "atom"_a);
-  CHECK_SYNCED(some_timespan, 123_ms);
+  CHECK_SYNCED(some_timespan, 123ms);
   CHECK_SYNCED(some_uri, "foo:bar"_u);
-  CHECK_SYNCED(some_string, "string"_s);
+  CHECK_SYNCED(some_string, "string"s);
   CAF_MESSAGE("check list types");
   CHECK_SYNCED(some_int_list, int_list({1, 2, 3}));
   CHECK_SYNCED(some_bool_list, bool_list({false, true}));
   CHECK_SYNCED(some_double_list, double_list({1., 2., 3.}));
   CHECK_SYNCED(some_atom_value_list, atom_value_list({"a"_a, "b"_a, "c"_a}));
-  CHECK_SYNCED(some_timespan_list, timespan_list({123_ms, 234_ms, 345_ms}));
+  CHECK_SYNCED(some_timespan_list, timespan_list({123ms, 234ms, 345ms}));
   CHECK_SYNCED(some_uri_list, uri_list({"foo:a"_u, "foo:b"_u, "foo:c"_u}));
   CHECK_SYNCED(some_string_list, string_list({"a", "b", "c"}));
   CAF_MESSAGE("check dictionary types");
@@ -270,7 +263,7 @@ CAF_TEST(basic and basic containers options) {
   CHECK_SYNCED(some_atom_value_map,
                atom_value_map({{"a", "1"_a}, {"b", "2"_a}, {"c", "3"_a}}));
   CHECK_SYNCED(some_timespan_map,
-               timespan_map({{"a", 123_ms}, {"b", 234_ms}, {"c", 345_ms}}));
+               timespan_map({{"a", 123ms}, {"b", 234ms}, {"c", 345ms}}));
   CHECK_SYNCED(some_uri_map,
                uri_map({{"a", "foo:a"_u}, {"b", "foo:b"_u}, {"c", "foo:c"_u}}));
   CHECK_SYNCED(some_string_map,

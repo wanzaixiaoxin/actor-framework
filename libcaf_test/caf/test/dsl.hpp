@@ -347,12 +347,7 @@ public:
 
   template <class... Us>
   void with(Us&&... xs) {
-    // TODO: replace this workaround with the make_tuple() line when dropping
-    //       support for GCC 4.8.
-    std::tuple<typename std::decay<Us>::type...> tmp{std::forward<Us>(xs)...};
-    //auto tmp = std::make_tuple(std::forward<Us>(xs)...);
-    // TODO: move tmp into lambda when switching to C++14
-    peek_ = [=] {
+    peek_ = [this, tmp{std::make_tuple(std::forward<Us>(xs)...)}] {
       using namespace caf::detail;
       elementwise_compare_inspector<decltype(tmp)> inspector{tmp};
       auto ys = extract<Ts...>(dest_);
@@ -415,9 +410,7 @@ public:
     auto ptr = dest_ptr->peek_at_next_mailbox_element();
     CAF_REQUIRE(ptr != nullptr);
     CAF_REQUIRE_EQUAL(ptr->sender, src_);
-    // TODO: replace this workaround with the make_tuple() line when dropping
-    //       support for GCC 4.8.
-    std::tuple<Ts...> tmp{std::move(xs)...};
+    auto tmp = std::make_tuple(std::move(xs)...);
     using namespace caf::detail;
     elementwise_compare_inspector<decltype(tmp)> inspector{tmp};
     auto ys = extract<Ts...>(dest_);
@@ -484,11 +477,7 @@ public:
 
   template <class... Us>
   void with(Us&&... xs) {
-    // TODO: replace this workaround with make_tuple() when dropping support
-    //       for GCC 4.8.
-    std::tuple<typename std::decay<Us>::type...> tmp{std::forward<Us>(xs)...};
-    // TODO: move tmp into lambda when switching to C++14
-    peek_ = [=] {
+    peek_ = [this, tmp{std::make_tuple(std::forward<Us>(xs)...)}] {
       using namespace caf::detail;
       elementwise_compare_inspector<decltype(tmp)> inspector{tmp};
       auto ys = try_extract<Ts...>(dest_);
@@ -564,11 +553,7 @@ public:
 
   template <class... Us>
   void with(Us&&... xs) {
-    // TODO: replace this workaround with make_tuple() when dropping support
-    //       for GCC 4.8.
-    std::tuple<typename std::decay<Us>::type...> tmp{std::forward<Us>(xs)...};
-    // TODO: move tmp into lambda when switching to C++14
-    check_ = [=] {
+    check_ = [this, tmp{std::make_tuple(std::forward<Us>(xs)...)}] {
       auto ptr = dest_->peek_at_next_mailbox_element();
       if (ptr == nullptr)
         return;
