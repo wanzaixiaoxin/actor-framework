@@ -463,7 +463,7 @@ namespace detail {
 template <class T>
 struct adder {
   adder(const char* suite_name, const char* test_name, bool disabled) {
-    engine::add(suite_name, std::unique_ptr<T>{new T(test_name, disabled)});
+    engine::add(suite_name, std::make_unique<T>(test_name, disabled));
   }
 };
 

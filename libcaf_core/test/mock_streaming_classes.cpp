@@ -329,7 +329,7 @@ struct entity {
     // Create a new queue in the mailbox for incoming traffic.
     get<2>(mbox.queues())
       .queues()
-      .emplace(slot, inner_dmsg_queue_policy{std::unique_ptr<in>{new in(mgr)}});
+      .emplace(slot, inner_dmsg_queue_policy{std::make_unique<in>(mgr)});
     // Acknowledge stream.
     sender->enqueue<umsg>(this, id.invert(), umsg::ack_handshake{10});
   }

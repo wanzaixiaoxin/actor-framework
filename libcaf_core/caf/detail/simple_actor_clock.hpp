@@ -24,7 +24,6 @@
 
 #include "caf/actor_clock.hpp"
 #include "caf/actor_control_block.hpp"
-#include "caf/detail/make_unique.hpp"
 #include "caf/group.hpp"
 #include "caf/mailbox_element.hpp"
 #include "caf/message.hpp"
@@ -352,7 +351,7 @@ protected:
 
   template <class T, class... Ts>
   void new_schedule_entry(time_point t, Ts&&... xs) {
-    add_schedule_entry(t, detail::make_unique<T>(t, std::forward<Ts>(xs)...));
+    add_schedule_entry(t, std::make_unique<T>(t, std::forward<Ts>(xs)...));
   }
 
   // -- member variables -------------------------------------------------------
