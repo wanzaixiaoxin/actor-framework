@@ -221,7 +221,7 @@ if(NOT WIN32 AND NOT CAF_NO_COMPILER_CHECK AND NOT CMAKE_CROSSCOMPILING)
       message(FATAL_ERROR "clang++ >= 3.2 required (found: ${CompilerVersion})")
     endif()
   else()
-    message(FATAL_ERROR "Your C++ compiler does not support C++11 "
+    message(FATAL_ERROR "Your C++ compiler does not support C++17 "
                         "or is not supported")
   endif()
 endif()
@@ -303,7 +303,7 @@ endif()
 # add -stdlib=libc++ when using Clang if possible
 if(NOT CAF_NO_AUTO_LIBCPP AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CXXFLAGS_BACKUP "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "-std=c++17 -stdlib=libc++")
   try_run(ProgramResult
           CompilationSucceeded
           "${CMAKE_CURRENT_BINARY_DIR}"
@@ -372,11 +372,11 @@ if(CAF_IOS_DEPLOYMENT_TARGET)
 endif()
 # check if the user provided CXXFLAGS, set defaults otherwise
 if(NOT CMAKE_CXX_FLAGS)
-  set(CMAKE_CXX_FLAGS                   "-std=c++11 -Wextra -Wall -pedantic ${EXTRA_FLAGS}")
+  set(CMAKE_CXX_FLAGS                   "-std=c++17 -Wextra -Wall -pedantic ${EXTRA_FLAGS}")
 endif()
 if (NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=")
-  message(STATUS "Supplied CXXFLAGS do not contain a C++ standard, setting std to c++11")
-  set(CMAKE_CXX_FLAGS                   "-std=c++11 ${CMAKE_CXX_FLAGS}")
+  message(STATUS "Supplied CXXFLAGS do not contain a C++ standard, setting std to c++17")
+  set(CMAKE_CXX_FLAGS                   "-std=c++17 ${CMAKE_CXX_FLAGS}")
 endif()
 if(NOT CMAKE_CXX_FLAGS_DEBUG)
   set(CMAKE_CXX_FLAGS_DEBUG             "-O0 -g")

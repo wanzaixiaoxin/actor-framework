@@ -450,6 +450,11 @@ struct callable_trait<R (Ts...)> {
 
 // member const function pointer
 template <class C, typename R, class... Ts>
+struct callable_trait<R (C::*)(Ts...) const noexcept>
+  : callable_trait<R(Ts...)> {};
+
+// member const function pointer
+template <class C, typename R, class... Ts>
 struct callable_trait<R (C::*)(Ts...) const> : callable_trait<R (Ts...)> {};
 
 // member function pointer
