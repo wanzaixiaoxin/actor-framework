@@ -79,7 +79,7 @@ public:
                              bool force_underfull) {
     CAF_LOG_TRACE(CAF_ARG(force_underfull));
     CAF_ASSERT(desired_batch_size > 0);
-    using type = detail::decay_t<decltype(*i)>;
+    using type = std::decay_t<decltype(*i)>;
     // Ship full batches.
     while (std::distance(i, e) >= desired_batch_size) {
       std::vector<type> tmp(std::make_move_iterator(i),

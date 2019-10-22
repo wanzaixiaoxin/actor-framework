@@ -29,31 +29,31 @@ namespace caf {
 enum class byte : uint8_t {};
 
 template <class IntegerType,
-          class = detail::enable_if_tt<std::is_integral<IntegerType>>>
+          class = std::enable_if_t<std::is_integral_v<IntegerType>>>
 constexpr IntegerType to_integer(byte x) noexcept {
   return static_cast<IntegerType>(x);
 }
 
 template <class IntegerType,
-          class E = detail::enable_if_tt<std::is_integral<IntegerType>>>
+          class E = std::enable_if_t<std::is_integral_v<IntegerType>>>
 constexpr byte& operator<<=(byte& x, IntegerType shift) noexcept {
   return x = static_cast<byte>(to_integer<uint8_t>(x) << shift);
 }
 
 template <class IntegerType,
-          class E = detail::enable_if_tt<std::is_integral<IntegerType>>>
+          class E = std::enable_if_t<std::is_integral_v<IntegerType>>>
 constexpr byte operator<<(byte x, IntegerType shift) noexcept {
   return static_cast<byte>(to_integer<uint8_t>(x) << shift);
 }
 
 template <class IntegerType,
-          class E = detail::enable_if_tt<std::is_integral<IntegerType>>>
+          class E = std::enable_if_t<std::is_integral_v<IntegerType>>>
 constexpr byte& operator>>=(byte& x, IntegerType shift) noexcept {
   return x = static_cast<byte>(to_integer<uint8_t>(x) >> shift);
 }
 
 template <class IntegerType,
-          class E = detail::enable_if_tt<std::is_integral<IntegerType>>>
+          class E = std::enable_if_t<std::is_integral_v<IntegerType>>>
 constexpr byte operator>>(byte x, IntegerType shift) noexcept {
   return static_cast<byte>(static_cast<unsigned char>(x) >> shift);
 }

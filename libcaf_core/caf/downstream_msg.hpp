@@ -125,8 +125,8 @@ bool is(const downstream_msg& x) {
 
 /// @relates downstream_msg
 template <class T, class... Ts>
-detail::enable_if_tt<detail::tl_contains<downstream_msg::alternatives, T>,
-                     downstream_msg>
+std::enable_if_t<detail::tl_contains<downstream_msg::alternatives, T>::value,
+                 downstream_msg>
 make(stream_slots slots, actor_addr addr, Ts&&... xs) {
   return {slots, std::move(addr), T{std::forward<Ts>(xs)...}};
 }

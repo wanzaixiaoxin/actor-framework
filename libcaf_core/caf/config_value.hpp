@@ -84,8 +84,8 @@ public:
 
   config_value(const config_value& other) = default;
 
-  template <class T, class E = detail::enable_if_t<
-                       !std::is_same<detail::decay_t<T>, config_value>::value>>
+  template <class T, class E = std::enable_if_t<
+                       !std::is_same<std::decay_t<T>, config_value>::value>>
   explicit config_value(T&& x) {
     set(std::forward<T>(x));
   }
@@ -94,8 +94,8 @@ public:
 
   config_value& operator=(const config_value& other) = default;
 
-  template <class T, class E = detail::enable_if_t<
-                       !std::is_same<detail::decay_t<T>, config_value>::value>>
+  template <class T, class E = std::enable_if_t<
+                       !std::is_same<std::decay_t<T>, config_value>::value>>
   config_value& operator=(T&& x) {
     set(std::forward<T>(x));
     return *this;
@@ -175,7 +175,7 @@ private:
   }
 
   template <class T>
-  detail::enable_if_t<detail::is_one_of<T, real, atom, timespan, uri, string,
+  std::enable_if_t<detail::is_one_of<T, real, atom, timespan, uri, string,
                                         list, dictionary>::value>
   set(T x) {
     data_ = std::move(x);
@@ -198,7 +198,7 @@ private:
   }
 
   template <class T>
-  detail::enable_if_t<detail::is_iterable<T>::value
+  std::enable_if_t<detail::is_iterable<T>::value
                       && !detail::is_one_of<T, string, list, dictionary>::value>
   set(T xs) {
     using value_type = typename T::value_type;
@@ -207,7 +207,7 @@ private:
   }
 
   template <class T>
-  detail::enable_if_t<std::is_integral<T>::value> set(T x) {
+  std::enable_if_t<std::is_integral<T>::value> set(T x) {
     data_ = static_cast<int64_t>(x);
   }
 

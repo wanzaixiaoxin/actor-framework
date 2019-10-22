@@ -84,18 +84,17 @@ public:
   void consume(const std::vector<bool>& xs);
 
   template <class T>
-  enable_if_t<std::is_floating_point<T>::value> consume(T x) {
+  std::enable_if_t<std::is_floating_point_v<T>> consume(T x) {
     result_ += std::to_string(x);
   }
 
   template <class T>
-  enable_if_t<std::is_integral<T>::value && std::is_signed<T>::value>
-  consume(T x) {
+  std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>> consume(T x) {
     consume_int(static_cast<int64_t>(x));
   }
 
   template <class T>
-  enable_if_t<std::is_integral<T>::value && std::is_unsigned<T>::value>
+  std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>>
   consume(T x) {
     consume_int(static_cast<uint64_t>(x));
   }
@@ -120,7 +119,7 @@ public:
 
   /// Picks up user-defined `to_string` functions.
   template <class T>
-  enable_if_t<!std::is_pointer<T>::value && has_to_string<T>::value>
+  std::enable_if_t<!std::is_pointer_v<T> && has_to_string<T>::value>
   consume(const T& x) {
     result_ += to_string(x);
   }
@@ -128,8 +127,8 @@ public:
   /// Delegates to `inspect(*this, x)` if available and `T` does not provide
   /// a `to_string` overload.
   template <class T>
-  enable_if_t<is_inspectable<stringification_inspector, T>::value
-              && !has_to_string<T>::value>
+  std::enable_if_t<is_inspectable<stringification_inspector, T>::value
+                   && !has_to_string<T>::value>
   consume(const T& x) {
     inspect(*this, const_cast<T&>(x));
   }
@@ -149,9 +148,9 @@ public:
   }
 
   template <class T>
-  enable_if_t<is_map_like<T>::value
-              && !is_inspectable<stringification_inspector, T>::value
-              && !has_to_string<T>::value>
+  std::enable_if_t<is_map_like<T>::value
+                   && !is_inspectable<stringification_inspector, T>::value
+                   && !has_to_string<T>::value>
   consume(const T& xs) {
     result_ += '{';
     for (const auto& kvp : xs) {
@@ -174,10 +173,10 @@ public:
   }
 
   template <class T>
-  enable_if_t<is_iterable<T>::value && !is_map_like<T>::value
-              && !std::is_convertible<T, string_view>::value
-              && !is_inspectable<stringification_inspector, T>::value
-              && !has_to_string<T>::value>
+  std::enable_if_t<is_iterable<T>::value && !is_map_like<T>::value
+                   && !std::is_convertible<T, string_view>::value
+                   && !is_inspectable<stringification_inspector, T>::value
+                   && !has_to_string<T>::value>
   consume(const T& xs) {
     consume_range(xs.begin(), xs.end());
   }
@@ -188,10 +187,10 @@ public:
   }
 
   template <class T>
-  enable_if_t<has_peek_all<T>::value
-              && !is_iterable<T>::value // pick begin()/end() over peek_all
-              && !is_inspectable<stringification_inspector, T>::value
-              && !has_to_string<T>::value>
+  std::enable_if_t<has_peek_all<T>::value
+                   && !is_iterable<T>::value // pick begin()/end() over peek_all
+                   && !is_inspectable<stringification_inspector, T>::value
+                   && !has_to_string<T>::value>
   consume(const T& xs) {
     result_ += '[';
     xs.peek_all(*this);
@@ -199,7 +198,7 @@ public:
   }
 
   template <class T>
-  enable_if_t<
+  std::enable_if_t<
     std::is_pointer<T>::value
     && !std::is_same<void, typename std::remove_pointer<T>::type>::value>
   consume(const T ptr) {
@@ -213,12 +212,12 @@ public:
 
   /// Fallback printing `<unprintable>`.
   template <class T>
-  enable_if_t<!is_iterable<T>::value && !has_peek_all<T>::value
-              && !std::is_pointer<T>::value
-              && !is_inspectable<stringification_inspector, T>::value
-              && !std::is_arithmetic<T>::value
-              && !std::is_convertible<T, string_view>::value
-              && !has_to_string<T>::value>
+  std::enable_if_t<!is_iterable<T>::value && !has_peek_all<T>::value
+                   && !std::is_pointer<T>::value
+                   && !is_inspectable<stringification_inspector, T>::value
+                   && !std::is_arithmetic<T>::value
+                   && !std::is_convertible<T, string_view>::value
+                   && !has_to_string<T>::value>
   consume(const T&) {
     result_ += "<unprintable>";
   }
@@ -273,7 +272,7 @@ public:
   }
 
   template <class T, class... Ts>
-  enable_if_t<!meta::is_annotation<T>::value && !is_callable<T>::value>
+  std::enable_if_t<!meta::is_annotation<T>::value && !is_callable<T>::value>
   traverse(const T& x, const Ts&... xs) {
     sep();
     consume(x);
@@ -281,7 +280,7 @@ public:
   }
 
   template <class T, class... Ts>
-  enable_if_t<!meta::is_annotation<T>::value && is_callable<T>::value>
+  std::enable_if_t<!meta::is_annotation<T>::value && is_callable<T>::value>
   traverse(const T&, const Ts&... xs) {
     sep();
     result_ += "<fun>";

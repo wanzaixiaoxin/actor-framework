@@ -101,7 +101,7 @@ attach_stream_source(scheduled_actor* self, std::tuple<Ts...> xs, Init init,
 template <class Init, class Pull, class Done, class Finalize = unit_t,
           class DownstreamManager = default_downstream_manager_t<Pull>,
           class Trait = stream_source_trait_t<Pull>>
-detail::enable_if_t<!is_actor_handle<Init>::value && Trait::valid,
+std::enable_if_t<!is_actor_handle<Init>::value && Trait::valid,
                     make_source_result_t<DownstreamManager>>
 attach_stream_source(scheduled_actor* self, Init init, Pull pull, Done done,
                      Finalize finalize = {},
@@ -124,7 +124,7 @@ template <class ActorHandle, class... Ts, class Init, class Pull, class Done,
           class Finalize = unit_t,
           class DownstreamManager = default_downstream_manager_t<Pull>,
           class Trait = stream_source_trait_t<Pull>>
-detail::enable_if_t<is_actor_handle<ActorHandle>::value,
+std::enable_if_t<is_actor_handle<ActorHandle>::value,
                     make_source_result_t<DownstreamManager>>
 attach_stream_source(scheduled_actor* self, const ActorHandle& dest,
                      std::tuple<Ts...> xs, Init init, Pull pull, Done done,
@@ -157,7 +157,7 @@ template <class ActorHandle, class Init, class Pull, class Done,
           class Finalize = unit_t,
           class DownstreamManager = default_downstream_manager_t<Pull>,
           class Trait = stream_source_trait_t<Pull>>
-detail::enable_if_t<is_actor_handle<ActorHandle>::value && Trait::valid,
+std::enable_if_t<is_actor_handle<ActorHandle>::value && Trait::valid,
                     make_source_result_t<DownstreamManager>>
 attach_stream_source(scheduled_actor* self, const ActorHandle& dest, Init init,
                      Pull pull, Done done, Finalize fin = {},

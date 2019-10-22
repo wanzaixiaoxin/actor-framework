@@ -39,7 +39,7 @@ make_config_value_field(string_view name, U T::*ptr, Args&&... xs) {
 
 /// Creates a field with access to a member in `T` via `getter` and `setter`.
 template <class Getter, class Setter,
-          class E = detail::enable_if_t<!std::is_member_pointer<Getter>::value>,
+          class E = std::enable_if_t<!std::is_member_pointer<Getter>::value>,
           class... Args>
 detail::config_value_field_impl<std::pair<Getter, Setter>>
 make_config_value_field(string_view name, Getter getter, Setter setter,

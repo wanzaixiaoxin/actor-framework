@@ -97,8 +97,8 @@ struct variant_move_helper {
 
 template <bool Valid, class F, class... Ts>
 struct variant_visit_result_impl {
-  using type =
-    decltype((std::declval<F&>())(std::declval<typename Ts::type0&>()...));
+  using type = decltype(
+    (std::declval<F&>())(std::declval<typename Ts::type0&>()...));
 };
 
 template <class F, class... Ts>
@@ -106,13 +106,11 @@ struct variant_visit_result_impl<false, F, Ts...> {};
 
 template <class F, class... Ts>
 struct variant_visit_result
-    : variant_visit_result_impl<
-        detail::conjunction<is_variant<Ts>::value...>::value, F, Ts...> {};
+  : variant_visit_result_impl<(is_variant<Ts>::value && ...), F, Ts...> {};
 
 template <class F, class... Ts>
-using variant_visit_result_t =
-  typename variant_visit_result<detail::decay_t<F>,
-                                detail::decay_t<Ts>...>::type;
+using variant_visit_result_t = typename variant_visit_result<
+  std::decay_t<F>, std::decay_t<Ts>...>::type;
 
 /// A variant represents always a valid value of one of the types `Ts...`.
 template <class... Ts>
@@ -130,19 +128,17 @@ public:
   static constexpr int max_type_id = sizeof...(Ts) - 1;
 
   /// Stores whether all types are nothrow constructible.
-  static constexpr bool nothrow_move_construct =
-    detail::conjunction<
-      std::is_nothrow_move_constructible<Ts>::value...
-    >::value;
+  static constexpr bool nothrow_move_construct
+    = (std::is_nothrow_move_constructible<Ts>::value && ...);
 
   /// Stores whether all types are nothrow assignable *and* constructible. We
   /// need to check both, since assigning to a variant results in a
   /// move-contruct unless the before and after types are the same.
-  static constexpr bool nothrow_move_assign =
-    nothrow_move_construct
-    && detail::conjunction<
-         std::is_nothrow_move_assignable<Ts>::value...
-       >::value;
+  static constexpr bool nothrow_move_assign = nothrow_move_construct
+                                              && (std::
+                                                    is_nothrow_move_assignable<
+                                                      Ts>::value
+                                                  && ...);
 
   // -- sanity checks ----------------------------------------------------------
 

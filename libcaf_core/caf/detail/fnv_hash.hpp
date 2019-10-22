@@ -38,31 +38,31 @@ size_t fnv_hash_append(size_t intermediate, const unsigned char* first,
                        const unsigned char* last);
 
 template <class T>
-enable_if_t<has_data_member<T>::value, size_t> fnv_hash(const T& x) {
+std::enable_if_t<has_data_member<T>::value, size_t> fnv_hash(const T& x) {
   auto ptr = x.data();
   auto first = reinterpret_cast<const uint8_t*>(ptr);
-  auto last = first + (sizeof(decay_t<decltype(*ptr)>) * x.size());
+  auto last = first + (sizeof(std::decay_t<decltype(*ptr)>) * x.size());
   return fnv_hash(first, last);
 }
 
 template <class T>
-enable_if_t<has_data_member<T>::value, size_t>
+std::enable_if_t<has_data_member<T>::value, size_t>
 fnv_hash_append(size_t intermediate, const T& x) {
   auto ptr = x.data();
   auto first = reinterpret_cast<const uint8_t*>(ptr);
-  auto last = first + (sizeof(decay_t<decltype(*ptr)>) * x.size());
+  auto last = first + (sizeof(std::decay_t<decltype(*ptr)>) * x.size());
   return fnv_hash_append(intermediate, first, last);
 }
 
 template <class T>
-enable_if_t<std::is_integral<T>::value, size_t> fnv_hash(const T& x) {
+std::enable_if_t<std::is_integral<T>::value, size_t> fnv_hash(const T& x) {
   auto first = reinterpret_cast<const uint8_t*>(&x);
   return fnv_hash(first, first + sizeof(T));
 }
 
 template <class T>
-enable_if_t<std::is_integral<T>::value, size_t> fnv_hash_append(size_t interim,
-                                                                const T& x) {
+std::enable_if_t<std::is_integral<T>::value, size_t>
+fnv_hash_append(size_t interim, const T& x) {
   auto first = reinterpret_cast<const uint8_t*>(&x);
   return fnv_hash_append(interim, first, first + sizeof(T));
 }

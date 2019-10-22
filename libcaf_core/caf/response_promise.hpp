@@ -53,12 +53,12 @@ public:
 
   /// Satisfies the promise by sending a non-error response message.
   template <class T, class... Ts>
-  detail::enable_if_t<((sizeof...(Ts) > 0)
+  std::enable_if_t<((sizeof...(Ts) > 0)
                        || (!std::is_convertible<T, error>::value
-                           && !std::is_same<detail::decay_t<T>, unit_t>::value))
-                        && !detail::is_expected<detail::decay_t<T>>::value>
+                           && !std::is_same<std::decay_t<T>, unit_t>::value))
+                        && !detail::is_expected<std::decay_t<T>>::value>
   deliver(T&& x, Ts&&... xs) {
-    using ts = detail::type_list<detail::decay_t<T>, detail::decay_t<Ts>...>;
+    using ts = detail::type_list<std::decay_t<T>, std::decay_t<Ts>...>;
     static_assert(!detail::tl_exists<ts, detail::is_result>::value,
                   "it is not possible to deliver objects of type result<T>");
     static_assert(!detail::tl_exists<ts, detail::is_expected>::value,

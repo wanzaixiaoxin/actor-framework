@@ -235,14 +235,14 @@ bool operator!=(const T* x, const intrusive_ptr<T>& y) {
 
 /// @relates intrusive_ptr
 template <class T, class U>
-detail::enable_if_t<detail::is_comparable<T*, U*>::value, bool>
+std::enable_if_t<detail::is_comparable<T*, U*>::value, bool>
 operator==(const intrusive_ptr<T>& x, const intrusive_ptr<U>& y) {
   return x.get() == y.get();
 }
 
 /// @relates intrusive_ptr
 template <class T, class U>
-detail::enable_if_t<detail::is_comparable<T*, U*>::value, bool>
+std::enable_if_t<detail::is_comparable<T*, U*>::value, bool>
 operator!=(const intrusive_ptr<T>& x, const intrusive_ptr<U>& y) {
   return x.get() != y.get();
 }

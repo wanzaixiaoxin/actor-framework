@@ -381,12 +381,7 @@ public:
   }
 
   template <class... Ts>
-  typename std::enable_if<
-    detail::conjunction<
-      detail::is_serializable<Ts>::value...
-    >::value,
-    error
-  >::type
+  std::enable_if_t<(detail::is_serializable<Ts>::value && ...), error>
   apply(std::tuple<Ts...>& xs) {
     //apply_helper f{*this};
     return detail::apply_args(*this, detail::get_indices(xs), xs);
@@ -459,13 +454,10 @@ public:
   /// Applies this processor to a raw block of data of size `num_bytes`.
   virtual error apply_raw(size_t num_bytes, void* data) = 0;
 
-  template <class T>
-  typename std::enable_if<
-    detail::is_inspectable<Derived, T>::value
-      && !detail::has_serialize<T>::value,
-    decltype(inspect(std::declval<Derived&>(), std::declval<T&>()))
-  >::type
-  apply(T& x) {
+  template <class T,
+            class = std::enable_if_t<detail::is_inspectable<Derived, T>::value
+                                     && !detail::has_serialize<T>::value>>
+  auto apply(T& x) {
     return inspect(dref(), x);
   }
 
@@ -475,13 +467,11 @@ public:
     return none;
   }
 
-#if defined(__cpp_fold_expressions) && defined(__cpp_if_constexpr)
-
   template <class... Ts>
   error operator()(Ts&&... xs) {
     error result;
     auto f = [&result, this](auto&& x) {
-      using type = detail::decay_t<decltype(x)>;
+      using type = std::decay_t<decltype(x)>;
       if constexpr (meta::is_save_callback<type>::value) {
         if constexpr (Derived::reads_state)
           if (auto err = x.fun()) {
@@ -498,9 +488,14 @@ public:
                            || is_allowed_unsafe_message_type<type>::value) {
         // skip element
       } else {
-        if (auto err = dref().apply(deconst(x))) {
-          result = std::move(err);
-          return false;
+        using result_type = decltype(dref().apply(deconst(x)));
+        if constexpr (!std::is_same_v<void, result_type>) {
+          if (auto err = dref().apply(deconst(x))) {
+            result = std::move(err);
+            return false;
+          }
+        } else {
+          dref().apply(deconst(x));
         }
       }
       return true;
@@ -509,58 +504,6 @@ public:
       return none;
     return result;
   }
-
-#else // defined(__cpp_fold_expressions) && defined(__cpp_if_constexpr)
-
-  template <class F, class... Ts>
-  error operator()(meta::save_callback_t<F> x, Ts&&... xs) {
-    if constexpr (Derived::reads_state)
-      if (auto err = x.fun())
-        return err;
-    return dref()(std::forward<Ts>(xs)...);
-  }
-
-  template <class F, class... Ts>
-  error operator()(meta::load_callback_t<F> x, Ts&&... xs) {
-    if constexpr (Derived::writes_state)
-      if (auto err = x.fun())
-        return err;
-    return dref()(std::forward<Ts>(xs)...);
-  }
-
-  template <class... Ts>
-  error operator()(const meta::annotation&, Ts&&... xs) {
-    return dref()(std::forward<Ts>(xs)...);
-  }
-
-  template <class T, class... Ts>
-  typename std::enable_if<
-    is_allowed_unsafe_message_type<T>::value,
-    error
-  >::type
-  operator()(const T&, Ts&&... xs) {
-    return dref()(std::forward<Ts>(xs)...);
-  }
-
-  template <class T, class... Ts>
-  typename std::enable_if<
-    !meta::is_annotation<T>::value
-    && !is_allowed_unsafe_message_type<T>::value,
-    error
-  >::type
-  operator()(T&& x, Ts&&... xs) {
-    static_assert(Derived::reads_state
-                  || (!std::is_rvalue_reference<T&&>::value
-                      && !std::is_const<
-                             typename std::remove_reference<T>::type
-                           >::value),
-                  "a loading inspector requires mutable lvalue references");
-    if (auto err = apply(deconst(x)))
-      return err;
-    return dref()(std::forward<Ts>(xs)...);
-  }
-
-#endif // defined(__cpp_fold_expressions) && defined(__cpp_if_constexpr)
 
 protected:
   virtual error apply_impl(int8_t&) = 0;

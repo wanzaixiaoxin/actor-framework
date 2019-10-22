@@ -81,11 +81,11 @@ struct config_value_field_trait {
 
   using get_argument_type = tl_head_t<typename trait::arg_types>;
 
-  using object_type = decay_t<get_argument_type>;
+  using object_type = std::decay_t<get_argument_type>;
 
   using get_result_type = typename trait::result_type;
 
-  using value_type = decay_t<get_result_type>;
+  using value_type = std::decay_t<get_result_type>;
 };
 
 // A config value with access to a field via getter and setter.

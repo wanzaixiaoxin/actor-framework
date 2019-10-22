@@ -44,10 +44,10 @@ class result {
 public:
   // clang-format off
   template <class... Us,
-            class = detail::enable_if_tt<
+            class = std::enable_if_t<
                      detail::all_constructible<
                        detail::type_list<Ts...>,
-                       detail::type_list<detail::decay_t<Us>...>>>>
+                       detail::type_list<std::decay_t<Us>...>>::value>>
   // clang-format on
   result(Us&&... xs) : flag(rt_value) {
     value = make_message(Ts{std::forward<Us>(xs)}...);

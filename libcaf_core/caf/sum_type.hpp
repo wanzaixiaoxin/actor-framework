@@ -29,7 +29,7 @@ namespace caf {
 /// `sum_type_access`.
 template <class T>
 constexpr bool SumType() {
-  return has_sum_type_access<typename std::decay<T>::type>::value;
+  return has_sum_type_access_v<std::decay_t<T>>;
 }
 
 /// Concept for checking whether all `Ts` support the sum type API by
@@ -37,7 +37,7 @@ constexpr bool SumType() {
 template <class... Ts>
 constexpr bool SumTypes() {
   using namespace detail;
-  using types = type_list<decay_t<Ts>...>;
+  using types = type_list<std::decay_t<Ts>...>;
   return tl_forall<types, has_sum_type_access>::value;
 }
 
@@ -48,8 +48,8 @@ struct sum_type_index {
 
 template <class Trait, class T>
 struct sum_type_index<Trait, T, true> {
-  static constexpr int value =
-    detail::tl_index_of<typename Trait::types, T>::value;
+  static constexpr int value = detail::tl_index_of<typename Trait::types,
+                                                   T>::value;
 };
 
 template <class Trait, class T>
@@ -57,7 +57,6 @@ constexpr sum_type_token<T, sum_type_index<Trait, T>::value>
 make_sum_type_token() {
   return {};
 }
-
 
 /// Returns a reference to the value of a sum type.
 /// @pre `holds_alternative<T>(x)`
@@ -72,7 +71,7 @@ auto get(U& x) -> decltype(Trait::get(x, make_sum_type_token<Trait, T>())) {
 /// @relates SumType
 template <class T, class U, class Trait = sum_type_access<U>>
 auto get(const U& x)
--> decltype(Trait::get(x, make_sum_type_token<Trait, T>())) {
+  -> decltype(Trait::get(x, make_sum_type_token<Trait, T>())) {
   return Trait::get(x, make_sum_type_token<Trait, T>());
 }
 
@@ -81,7 +80,7 @@ auto get(const U& x)
 /// @relates SumType
 template <class T, class U, class Trait = sum_type_access<U>>
 auto get_if(U* x)
--> decltype(Trait::get_if(x, make_sum_type_token<Trait, T>())) {
+  -> decltype(Trait::get_if(x, make_sum_type_token<Trait, T>())) {
   return Trait::get_if(x, make_sum_type_token<Trait, T>());
 }
 
@@ -90,7 +89,7 @@ auto get_if(U* x)
 /// @relates SumType
 template <class T, class U, class Trait = sum_type_access<U>>
 auto get_if(const U* x)
--> decltype(Trait::get_if(x, make_sum_type_token<Trait, T>())) {
+  -> decltype(Trait::get_if(x, make_sum_type_token<Trait, T>())) {
   return Trait::get_if(x, make_sum_type_token<Trait, T>());
 }
 
@@ -114,13 +113,11 @@ struct sum_type_visit_result_impl<false, F, Ts...> {};
 
 template <class F, class... Ts>
 struct sum_type_visit_result
-    : sum_type_visit_result_impl<
-        detail::conjunction<SumType<Ts>()...>::value, F, Ts...> {};
+  : sum_type_visit_result_impl<(SumType<Ts>() && ...), F, Ts...> {};
 
 template <class F, class... Ts>
-using sum_type_visit_result_t =
-  typename sum_type_visit_result<detail::decay_t<F>,
-                                 detail::decay_t<Ts>...>::type;
+using sum_type_visit_result_t = typename sum_type_visit_result<
+  std::decay_t<F>, std::decay_t<Ts>...>::type;
 
 template <class Result, size_t I, class Visitor>
 struct visit_impl_continuation;
@@ -130,7 +127,7 @@ struct visit_impl {
   template <class Visitor, class T, class... Ts>
   static Result apply(Visitor&& f, T&& x, Ts&&... xs) {
     visit_impl_continuation<Result, I - 1, Visitor> continuation{f};
-    using trait = sum_type_access<detail::decay_t<T>>;
+    using trait = sum_type_access<std::decay_t<T>>;
     return trait::template apply<Result>(x, continuation,
                                          std::forward<Ts>(xs)...);
   }
@@ -143,7 +140,6 @@ struct visit_impl<Result, 0> {
     return f(std::forward<Ts>(xs)...);
   }
 };
-
 
 template <class Result, size_t I, class Visitor>
 struct visit_impl_continuation {
@@ -158,8 +154,8 @@ struct visit_impl_continuation {
 /// @relates SumType
 template <class Visitor, class T, class... Ts,
           class Result = sum_type_visit_result_t<Visitor, T, Ts...>>
-detail::enable_if_t<SumTypes<T, Ts...>(), Result>
-visit(Visitor&& f, T&& x, Ts&&... xs) {
+std::enable_if_t<SumTypes<T, Ts...>(), Result> visit(Visitor&& f, T&& x,
+                                                        Ts&&... xs) {
   return visit_impl<Result, sizeof...(Ts) + 1>::apply(std::forward<Visitor>(f),
                                                       std::forward<T>(x),
                                                       std::forward<Ts>(xs)...);

@@ -64,7 +64,7 @@ void parse(string_parser_state& ps, uint64_t& x);
 // -- non-fixed size integer types ---------------------------------------------
 
 template <class T>
-detail::enable_if_t<std::is_integral<T>::value> parse(string_parser_state& ps,
+std::enable_if_t<std::is_integral<T>::value> parse(string_parser_state& ps,
                                                       T& x) {
   using squashed_type = squashed_int_t<T>;
   return parse(ps, reinterpret_cast<squashed_type&>(x));
@@ -106,15 +106,15 @@ void parse_element(string_parser_state& ps, std::string& x,
                    const char* char_blacklist);
 
 template <class T>
-enable_if_t<!is_pair<T>::value> parse_element(string_parser_state& ps, T& x,
-                                              const char*);
+std::enable_if_t<!is_pair<T>::value> parse_element(string_parser_state& ps,
+                                                   T& x, const char*);
 
 template <class First, class Second, size_t N>
 void parse_element(string_parser_state& ps, std::pair<First, Second>& kvp,
                    const char (&char_blacklist)[N]);
 
 template <class T>
-enable_if_tt<is_iterable<T>> parse(string_parser_state& ps, T& xs) {
+std::enable_if_t<is_iterable<T>::value> parse(string_parser_state& ps, T& xs) {
   using value_type = deconst_kvp_t<typename T::value_type>;
   static constexpr auto is_map_type = is_pair<value_type>::value;
   static constexpr auto opening_char = is_map_type ? '{' : '[';
@@ -159,8 +159,8 @@ enable_if_tt<is_iterable<T>> parse(string_parser_state& ps, T& xs) {
 }
 
 template <class T>
-enable_if_t<!is_pair<T>::value> parse_element(string_parser_state& ps, T& x,
-                                              const char*) {
+std::enable_if_t<!is_pair<T>::value> parse_element(string_parser_state& ps,
+                                                   T& x, const char*) {
   parse(ps, x);
 }
 

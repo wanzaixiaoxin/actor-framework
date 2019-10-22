@@ -114,7 +114,7 @@ void anon_send(const Dest& dest, Ts&&... xs) {
 
 template <message_priority P = message_priority::normal, class Dest = actor,
           class Rep = int, class Period = std::ratio<1>, class... Ts>
-detail::enable_if_t<!std::is_same<Dest, group>::value>
+std::enable_if_t<!std::is_same<Dest, group>::value>
 delayed_anon_send(const Dest& dest, std::chrono::duration<Rep, Period> rtime,
                   Ts&&... xs) {
   static_assert(sizeof...(Ts) > 0, "no message to send");

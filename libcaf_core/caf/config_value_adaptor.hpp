@@ -47,8 +47,8 @@ public:
   using array_type = std::array<config_value_field<value_type>*, sizeof...(Ts)>;
 
   template <class U,
-            class = detail::enable_if_t<
-              !std::is_same<detail::decay_t<U>, config_value_adaptor>::value>,
+            class = std::enable_if_t<
+              !std::is_same<std::decay_t<U>, config_value_adaptor>::value>,
             class... Us>
   config_value_adaptor(U&& x, Us&&... xs)
     : fields_(std::forward<U>(x), std::forward<Us>(xs)...) {

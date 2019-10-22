@@ -79,13 +79,13 @@ public:
   }
 
   template <class C,
-            class E = detail::enable_if_t<detail::has_data_member<C>::value>>
+            class E = std::enable_if_t<detail::has_data_member<C>::value>>
   span(C& xs) noexcept : begin_(xs.data()), size_(xs.size()) {
     // nop
   }
 
   template <class C,
-            class E = detail::enable_if_t<detail::has_data_member<C>::value>>
+            class E = std::enable_if_t<detail::has_data_member<C>::value>>
   span(const C& xs) noexcept : begin_(xs.data()), size_(xs.size()) {
     // nop
   }
@@ -217,7 +217,7 @@ span<byte> as_writable_bytes(span<T> xs) {
 /// Convenience function to make using `caf::span` more convenient without the
 /// deduction guides.
 template <class T>
-auto make_span(T& xs) -> span<detail::remove_reference_t<decltype(xs[0])>> {
+auto make_span(T& xs) -> span<std::remove_reference_t<decltype(xs[0])>> {
   return {xs.data(), xs.size()};
 }
 

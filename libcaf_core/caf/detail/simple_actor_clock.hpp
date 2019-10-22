@@ -327,7 +327,7 @@ protected:
   void ship(delayed_event& x);
 
   template <class T>
-  detail::enable_if_t<T::cancellable>
+  std::enable_if_t<T::cancellable>
   add_schedule_entry(time_point t, std::unique_ptr<T> x) {
     auto id = x->self->id();
     auto i = schedule_.emplace(t, std::move(x));
@@ -335,7 +335,7 @@ protected:
   }
 
   template <class T>
-  detail::enable_if_t<!T::cancellable>
+  std::enable_if_t<!T::cancellable>
   add_schedule_entry(time_point t, std::unique_ptr<T> x) {
     auto i = schedule_.emplace(t, std::move(x));
     i->second->backlink = actor_lookup_.end();

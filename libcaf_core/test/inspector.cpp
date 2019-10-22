@@ -248,7 +248,7 @@ struct binary_serialization_policy {
   }
 
   template <class T>
-  detail::enable_if_t<is_integral_or_enum<T>::value, bool> operator()(T& x) {
+  std::enable_if_t<is_integral_or_enum<T>::value, bool> operator()(T& x) {
     auto buf = to_buf(x);
     binary_deserializer source{&context, buf};
     auto y = static_cast<T>(0);
@@ -259,7 +259,7 @@ struct binary_serialization_policy {
   }
 
   template <class T>
-  detail::enable_if_t<!is_integral_or_enum<T>::value, bool> operator()(T& x) {
+  std::enable_if_t<!is_integral_or_enum<T>::value, bool> operator()(T& x) {
     auto buf = to_buf(x);
     binary_deserializer source{&context, buf};
     T y;

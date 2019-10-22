@@ -97,7 +97,7 @@ public:
   /// Wraps arbitrary values into a `message` and calls the visitor recursively.
   template <class... Ts>
   void operator()(Ts&... xs) {
-    static_assert(detail::conjunction<!detail::is_stream<Ts>::value...>::value,
+    static_assert((!detail::is_stream<Ts>::value && ...),
                   "returning a stream<T> from a message handler achieves not "
                   "what you would expect and is most likely a mistake");
     auto tmp = make_message(std::move(xs)...);

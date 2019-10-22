@@ -37,4 +37,7 @@ struct has_sum_type_access {
   static constexpr bool value = sum_type_access<T>::specialized;
 };
 
+template <class T>
+constexpr bool has_sum_type_access_v = has_sum_type_access<T>::value;
+
 } // namespace caf

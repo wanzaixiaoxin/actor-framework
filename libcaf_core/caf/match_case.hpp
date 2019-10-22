@@ -198,22 +198,16 @@ to_match_case_tuple(const MatchCase& x) {
 
 template <class... Ts>
 const std::tuple<Ts...>& to_match_case_tuple(const std::tuple<Ts...>& x) {
-  static_assert(detail::conjunction<
-                  std::is_base_of<
-                    match_case,
-                    Ts
-                  >::value...
-                >::value,
+  static_assert((std::is_base_of<match_case, Ts>::value && ...),
                 "to_match_case_tuple received a tuple of non-match_case Ts");
   return x;
 }
 
 template <class T, class U>
-typename std::enable_if<
-  std::is_base_of<match_case, T>::value || std::is_base_of<match_case, U>::value
->::type
+typename std::enable_if_t<std::is_base_of<match_case, T>::value
+                          || std::is_base_of_v<match_case, U>>
 operator,(T, U) {
-  static_assert(!std::is_same<T, T>::value,
+  static_assert(!std::is_same_v<T, T>,
                 "this syntax is not supported -> you probably did "
                 "something like 'return (...)' instead of 'return {...}'");
 }

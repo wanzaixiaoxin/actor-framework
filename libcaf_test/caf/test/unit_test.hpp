@@ -68,7 +68,7 @@ struct equality_operator {
   static constexpr bool default_value = false;
 
   template <class T, class U,
-            detail::enable_if_t<((std::is_floating_point<T>::value
+            std::enable_if_t<((std::is_floating_point<T>::value
                                   && std::is_convertible<U, double>::value)
                                  || (std::is_floating_point<U>::value
                                      && std::is_convertible<T, double>::value))
@@ -83,7 +83,7 @@ struct equality_operator {
   }
 
   template <class T, class U,
-            detail::enable_if_t<!((std::is_floating_point<T>::value
+            std::enable_if_t<!((std::is_floating_point<T>::value
                                    && std::is_convertible<U, double>::value)
                                   || (std::is_floating_point<U>::value
                                       && std::is_convertible<T, double>::value))

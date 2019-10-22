@@ -92,7 +92,7 @@ public:
   /// passed already).
   template <message_priority P = message_priority::normal, class Dest = actor,
             class... Ts>
-  detail::enable_if_t<!std::is_same<Dest, group>::value>
+  std::enable_if_t<!std::is_same<Dest, group>::value>
   scheduled_send(const Dest& dest, actor_clock::time_point timeout,
                  Ts&&... xs) {
     static_assert(sizeof...(Ts) > 0, "no message to send");
@@ -125,7 +125,7 @@ public:
   /// Sends a message after a relative timeout.
   template <message_priority P = message_priority::normal, class Rep = int,
             class Period = std::ratio<1>, class Dest = actor, class... Ts>
-  detail::enable_if_t<!std::is_same<Dest, group>::value>
+  std::enable_if_t<!std::is_same<Dest, group>::value>
   delayed_send(const Dest& dest, std::chrono::duration<Rep, Period> rel_timeout,
                Ts&&... xs) {
     static_assert(sizeof...(Ts) > 0, "no message to send");
