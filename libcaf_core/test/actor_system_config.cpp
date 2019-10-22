@@ -245,7 +245,7 @@ CAF_TEST(basic and basic containers options) {
   CHECK_SYNCED(some_bool, true);
   CHECK_SYNCED(some_double, 1e23);
   CHECK_SYNCED(some_atom_value, "atom"_a);
-  CHECK_SYNCED(some_timespan, 123ms);
+  CHECK_SYNCED(some_timespan, timespan{123ms});
   CHECK_SYNCED(some_uri, "foo:bar"_u);
   CHECK_SYNCED(some_string, "string"s);
   CAF_MESSAGE("check list types");
