@@ -204,8 +204,6 @@ const char* actor_system::module::name() const noexcept {
       return "Scheduler";
     case middleman:
       return "Middleman";
-    case opencl_manager:
-      return "OpenCL Manager";
     case openssl_manager:
       return "OpenSSL Manager";
     case network_manager:
@@ -386,17 +384,6 @@ io::middleman& actor_system::middleman() {
   if (!clptr)
     CAF_RAISE_ERROR("cannot access middleman: module not loaded");
   return *reinterpret_cast<io::middleman*>(clptr->subtype_ptr());
-}
-
-bool actor_system::has_opencl_manager() const {
-  return modules_[module::opencl_manager] != nullptr;
-}
-
-opencl::manager& actor_system::opencl_manager() const {
-  auto& clptr = modules_[module::opencl_manager];
-  if (!clptr)
-    CAF_RAISE_ERROR("cannot access opencl manager: module not loaded");
-  return *reinterpret_cast<opencl::manager*>(clptr->subtype_ptr());
 }
 
 bool actor_system::has_openssl_manager() const {

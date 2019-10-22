@@ -130,8 +130,6 @@ actor_system_config::actor_system_config()
     .add<bool>("manual-multiplexing",
                "disables background activity of the multiplexer")
     .add<size_t>("workers", "number of deserialization workers");
-  opt_group(custom_options_, "opencl")
-    .add<std::vector<size_t>>("device-ids", "whitelist for OpenCL devices");
   opt_group(custom_options_, "openssl")
     .add<string>(openssl_certificate, "certificate",
                  "path to the PEM-formatted certificate file")
@@ -205,7 +203,7 @@ settings actor_system_config::dump_content() const {
   put_missing(middleman_group, "heartbeat-interval",
               defaults::middleman::heartbeat_interval);
   put_missing(middleman_group, "workers", defaults::middleman::workers);
-  // -- opencl parameters
+  // -- openssl parameters
   auto& openssl_group = result["openssl"].as_dictionary();
   put_missing(openssl_group, "certificate", std::string{});
   put_missing(openssl_group, "key", std::string{});
