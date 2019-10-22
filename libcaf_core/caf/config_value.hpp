@@ -175,8 +175,8 @@ private:
   }
 
   template <class T>
-  std::enable_if_t<detail::is_one_of<T, real, atom, timespan, uri, string,
-                                        list, dictionary>::value>
+  std::enable_if_t<detail::is_one_of<T, real, atom, timespan, uri, string, list,
+                                     dictionary>::value>
   set(T x) {
     data_ = std::move(x);
   }
@@ -199,7 +199,7 @@ private:
 
   template <class T>
   std::enable_if_t<detail::is_iterable<T>::value
-                      && !detail::is_one_of<T, string, list, dictionary>::value>
+                   && !detail::is_one_of<T, string, list, dictionary>::value>
   set(T xs) {
     using value_type = typename T::value_type;
     detail::bool_token<detail::is_pair<value_type>::value> is_map_type;

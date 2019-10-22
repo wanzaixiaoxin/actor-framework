@@ -155,7 +155,7 @@ struct visit_impl_continuation {
 template <class Visitor, class T, class... Ts,
           class Result = sum_type_visit_result_t<Visitor, T, Ts...>>
 std::enable_if_t<SumTypes<T, Ts...>(), Result> visit(Visitor&& f, T&& x,
-                                                        Ts&&... xs) {
+                                                     Ts&&... xs) {
   return visit_impl<Result, sizeof...(Ts) + 1>::apply(std::forward<Visitor>(f),
                                                       std::forward<T>(x),
                                                       std::forward<Ts>(xs)...);

@@ -222,8 +222,8 @@ class is_iterable {
   using result_type = decltype(sfinae(static_cast<std::decay_t<T>*>(nullptr)));
 
 public:
-  static constexpr bool value = !is_primitive_v<T>
-                                && std::is_same_v<bool, result_type>;
+  static constexpr bool value = // return false for std::string & friends
+    !is_primitive_v<T> && std::is_same_v<bool, result_type>;
 };
 
 template <class T>

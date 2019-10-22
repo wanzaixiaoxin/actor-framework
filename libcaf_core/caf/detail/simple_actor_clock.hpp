@@ -184,7 +184,7 @@ public:
   /// Cancels a delayed event.
   struct cancellation : event {
     cancellation(event_type t, actor_id aid) : event(t), aid(aid) {
-      //nop
+      // nop
     }
 
     actor_id aid;
@@ -264,11 +264,11 @@ public:
 
   // -- overridden member functions --------------------------------------------
 
-  void set_ordinary_timeout(time_point t, abstract_actor* self,
-                            atom_value type, uint64_t id) override;
+  void set_ordinary_timeout(time_point t, abstract_actor* self, atom_value type,
+                            uint64_t id) override;
 
-  void set_multi_timeout(time_point t, abstract_actor* self,
-                         atom_value type, uint64_t id) override;
+  void set_multi_timeout(time_point t, abstract_actor* self, atom_value type,
+                         uint64_t id) override;
 
   void set_request_timeout(time_point t, abstract_actor* self,
                            message_id id) override;
@@ -327,16 +327,16 @@ protected:
   void ship(delayed_event& x);
 
   template <class T>
-  std::enable_if_t<T::cancellable>
-  add_schedule_entry(time_point t, std::unique_ptr<T> x) {
+  std::enable_if_t<T::cancellable> add_schedule_entry(time_point t,
+                                                      std::unique_ptr<T> x) {
     auto id = x->self->id();
     auto i = schedule_.emplace(t, std::move(x));
     i->second->backlink = actor_lookup_.emplace(id, i);
   }
 
   template <class T>
-  std::enable_if_t<!T::cancellable>
-  add_schedule_entry(time_point t, std::unique_ptr<T> x) {
+  std::enable_if_t<!T::cancellable> add_schedule_entry(time_point t,
+                                                       std::unique_ptr<T> x) {
     auto i = schedule_.emplace(t, std::move(x));
     i->second->backlink = actor_lookup_.end();
   }

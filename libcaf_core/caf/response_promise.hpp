@@ -21,11 +21,11 @@
 #include <vector>
 
 #include "caf/actor.hpp"
-#include "caf/message.hpp"
 #include "caf/actor_addr.hpp"
+#include "caf/check_typed_input.hpp"
+#include "caf/message.hpp"
 #include "caf/message_id.hpp"
 #include "caf/response_type.hpp"
-#include "caf/check_typed_input.hpp"
 
 namespace caf {
 
@@ -54,17 +54,17 @@ public:
   /// Satisfies the promise by sending a non-error response message.
   template <class T, class... Ts>
   std::enable_if_t<((sizeof...(Ts) > 0)
-                       || (!std::is_convertible<T, error>::value
-                           && !std::is_same<std::decay_t<T>, unit_t>::value))
-                        && !detail::is_expected<std::decay_t<T>>::value>
+                    || (!std::is_convertible<T, error>::value
+                        && !std::is_same<std::decay_t<T>, unit_t>::value))
+                   && !detail::is_expected<std::decay_t<T>>::value>
   deliver(T&& x, Ts&&... xs) {
     using ts = detail::type_list<std::decay_t<T>, std::decay_t<Ts>...>;
     static_assert(!detail::tl_exists<ts, detail::is_result>::value,
                   "it is not possible to deliver objects of type result<T>");
     static_assert(!detail::tl_exists<ts, detail::is_expected>::value,
                   "mixing expected<T> with regular values is not supported");
-    return deliver_impl(make_message(std::forward<T>(x),
-                                     std::forward<Ts>(xs)...));
+    return deliver_impl(
+      make_message(std::forward<T>(x), std::forward<Ts>(xs)...));
   }
 
   template <class T>
@@ -75,19 +75,15 @@ public:
   }
 
   /// Satisfies the promise by delegating to another actor.
-  template <message_priority P = message_priority::normal,
-           class Handle = actor, class... Ts>
-   typename response_type<
-    typename Handle::signatures,
-    detail::implicit_conversions_t<typename std::decay<Ts>::type>...
-  >::delegated_type
+  template <message_priority P = message_priority::normal, class Handle = actor,
+            class... Ts>
+  typename response_type<typename Handle::signatures,
+                         detail::implicit_conversions_t<
+                           typename std::decay<Ts>::type>...>::delegated_type
   delegate(const Handle& dest, Ts&&... xs) {
     static_assert(sizeof...(Ts) > 0, "nothing to delegate");
-    using token =
-      detail::type_list<
-        typename detail::implicit_conversions<
-          typename std::decay<Ts>::type
-        >::type...>;
+    using token = detail::type_list<typename detail::implicit_conversions<
+      typename std::decay<Ts>::type>::type...>;
     static_assert(response_type_unbox<signatures_of_t<Handle>, token>::valid,
                   "receiver does not accept given message");
     if (dest) {

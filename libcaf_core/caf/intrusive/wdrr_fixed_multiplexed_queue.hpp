@@ -56,8 +56,7 @@ public:
 
   wdrr_fixed_multiplexed_queue(policy_type p0, typename Q::policy_type p1,
                                typename Qs::policy_type... ps)
-      : qs_(std::move(p1), std::move(ps)...),
-        policy_(std::move(p0)) {
+    : qs_(std::move(p1), std::move(ps)...), policy_(std::move(p0)) {
     // nop
   }
 
@@ -195,7 +194,7 @@ private:
   std::enable_if_t<I != num_queues, new_round_result>
   new_round_recursion(deficit_type quantum, F& f) {
     auto& q = std::get<I>(qs_);
-    using q_type = typename std::decay<decltype(q)>::type;
+    using q_type = std::decay_t<decltype(q)>;
     new_round_recursion_helper<I, q_type, F> g{q, f};
     auto res = q.new_round(policy_.quantum(q, quantum), g);
     if (res.stop_all) {
@@ -250,12 +249,13 @@ private:
   template <size_t I>
   std::enable_if_t<I != num_queues, task_size_type>
   total_task_size_recursion() const noexcept {
-    return std::get<I>(qs_).total_task_size() + total_task_size_recursion<I + 1>();
+    return std::get<I>(qs_).total_task_size()
+           + total_task_size_recursion<I + 1>();
   }
 
   template <size_t I>
-  std::enable_if_t<I == num_queues>
-  lifo_append_recursion(size_t, pointer) noexcept {
+  std::enable_if_t<I == num_queues> lifo_append_recursion(size_t,
+                                                          pointer) noexcept {
     // nop
   }
 
