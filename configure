@@ -2,15 +2,6 @@
 # Convenience wrapper for easily viewing/setting options that
 # the project's CMake scripts will recognize.
 
-# check for `cmake` command
-type cmake > /dev/null 2>&1 || {
-    echo "\
-This package requires CMake, please install it first, then you may
-use this configure script to access CMake equivalent functionality.\
-" >&2;
-    exit 1;
-}
-
 command="$0 $*"
 dirname_0=`dirname $0`
 sourcedir=`cd $dirname_0 && pwd`
@@ -19,6 +10,7 @@ usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
   Build Options:
+    --cmake=PATH                custom path to a CMake binary
     --generator=GENERATOR       set CMake generator (see cmake --help)
     --build-type=TYPE           set CMake build type [RelWithDebInfo]:
                                   - Debug: debugging flags enabled
@@ -29,8 +21,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --build-dir=DIR             place build files in directory [build]
     --bin-dir=DIR               executable directory [build/bin]
     --lib-dir=DIR               library directory [build/lib]
-    --with-clang=FILE           path to clang++ executable
-    --with-gcc=FILE             path to g++ executable
     --with-qt-prefix=PATH       prefix path for Qt5 cmake modules
     --with-openssl=PATH         path to OpenSSL library and headers
     --dual-build                build using both gcc and clang
@@ -122,97 +112,13 @@ append_cache_entry ()
     esac
 }
 
-# Creates a build directory via CMake.
-#   $1 is the path to a compiler executable.
-#   $2 is the suffix of the build directory.
-#   $3 is the executable output path.
-#   $4 is the library output path.
-#   $5 is the CMake generator.
-configure ()
-{
-
-    CMakeCacheEntries=$CMakeDefaultCache
-
-    if [ -n "$1" ]; then
-        append_cache_entry CMAKE_CXX_COMPILER FILEPATH $1
-    fi
-
-    case "$builddir" in
-        /*)
-            #absolute path given
-            absolute_builddir="$builddir"
-            ;;
-        *)
-            # relative path given; convert to absolute path
-            absolute_builddir="$PWD/$builddir"
-            ;;
-    esac
-
-    if [ -n "$2" ]; then
-        workdir="$absolute_builddir-$2"
-    else
-        workdir="$absolute_builddir"
-    fi
-    workdirs="$workdirs $workdir"
-
-    if [ -n "$3" ]; then
-        append_cache_entry EXECUTABLE_OUTPUT_PATH PATH "$3"
-    else
-        append_cache_entry EXECUTABLE_OUTPUT_PATH PATH "$workdir/bin"
-    fi
-
-    if [ -n "$4" ]; then
-        append_cache_entry LIBRARY_OUTPUT_PATH PATH "$4"
-    else
-        append_cache_entry LIBRARY_OUTPUT_PATH PATH "$workdir/lib"
-    fi
-
-    if [ -d "$workdir" ]; then
-        # If a build directory exists, check if it has a CMake cache.
-        if [ -f "$workdir/CMakeCache.txt" ]; then
-            # If the CMake cache exists, delete it so that this configuration
-            # is not tainted by a previous one.
-            rm -f "$workdir/CMakeCache.txt"
-        fi
-    else
-        mkdir -p "$workdir"
-    fi
-
-    cd "$workdir"
-
-    if [ -n "$5" ]; then
-        cmake -G "$5" $CMakeCacheEntries "$sourcedir"
-    else
-        cmake $CMakeCacheEntries "$sourcedir"
-    fi
-
-    printf "#!/bin/sh\n\n" > config.status
-    printf "# Switch to the source of this build directory.\n" >> config.status
-    printf "cd \"$sourcedir\"\n\n" >> config.status
-    printf "# Invoke the command to configure this build.\n" >> config.status
-    if [ -n "$CC" ]; then
-      printf "CC=\"%s\"\n" "$CC" >> config.status
-    fi
-    if [ -n "$CXX" ]; then
-      printf "CXX=\"%s\"\n" "$CXX" >> config.status
-    fi
-    if [ -n "$CXXFLAGS" ]; then
-      printf "CXXFLAGS=\"%s\"\n" "$CXXFLAGS" >> config.status
-    fi
-    if [ -n "$LDFLAGS" ]; then
-      printf "LDFLAGS=\"%s\"\n" "$LDFLAGS" >> config.status
-    fi
-    echo $command >> config.status
-    chmod u+x config.status
-}
-
 # Set defaults.
 builddir="$sourcedir/build"
 CMakeCacheEntries=""
 append_cache_entry CMAKE_INSTALL_PREFIX        PATH   /usr/local
 append_cache_entry CAF_ENABLE_RUNTIME_CHECKS   BOOL   false
 
-# parse custom environment variable to initialize CMakeGenerator
+# Parse custom environment variable to initialize CMakeGenerator
 if [ -n "$CMAKE_GENERATOR" ]; then
   CMakeGenerator="$CMAKE_GENERATOR"
 fi
@@ -228,6 +134,9 @@ while [ $# -ne 0 ]; do
         --help|-h)
             echo "${usage}" 1>&2
             exit 1
+            ;;
+        --cmake=*)
+            CMakeCommand=$optarg
             ;;
         --generator=*)
             CMakeGenerator="$optarg"
@@ -285,12 +194,6 @@ while [ $# -ne 0 ]; do
         --with-log-level=*)
             append_cache_entry CAF_LOG_LEVEL STRING "$optarg"
             ;;
-        --with-clang=*)
-            clang="$optarg"
-            ;;
-        --with-gcc=*)
-            gcc="$optarg"
-            ;;
         --with-qt-prefix=*)
             append_cache_entry CAF_QT_PREFIX_PATH STRING "$optarg"
             ;;
@@ -307,13 +210,10 @@ while [ $# -ne 0 ]; do
             builddir="$optarg"
             ;;
         --bin-dir=*)
-            bindir="$optarg"
+            append_cache_entry EXECUTABLE_OUTPUT_PATH PATH "$optarg"
             ;;
         --lib-dir=*)
-            libdir="$optarg"
-            ;;
-        --dual-build)
-            dualbuild=1
+            append_cache_entry LIBRARY_OUTPUT_PATH PATH "$optarg"
             ;;
         --no-examples)
             append_cache_entry CAF_NO_EXAMPLES BOOL yes
@@ -389,30 +289,66 @@ while [ $# -ne 0 ]; do
     shift
 done
 
-# At this point we save the global CMake variables so that configure() can
-# later use them.
-CMakeDefaultCache=$CMakeCacheEntries
+# Get absolute path to build directory (TODO: consider using realpath).
+case "$builddir" in
+    /*)
+        # absolute path given
+        absolute_builddir="$builddir"
+        ;;
+    *)
+        # relative path given; convert to absolute path
+        absolute_builddir="$PWD/$builddir"
+        ;;
+esac
 
-if [ -n "$dualbuild" ]; then
-    # Use what we got in $PATH if --with-clang or --with-gcc is not specified.
-    if [ -z "$clang" ]; then
-        clang=clang++
+# If a build directory exists, make sure we wipe any CMake cache.
+if [ -d "$builddir" ]; then
+    if [ -f "$builddir/CMakeCache.txt" ]; then
+        rm -f "$builddir/CMakeCache.txt"
     fi
-    if [ -z "$gcc" ]; then
-        gcc=g++
-    fi
-
-    for i in gcc clang; do
-        eval "compiler=\$$i"
-        configure $compiler $i "" "" $CMakeGenerator
-    done
 else
-    # Prefer Clang to GCC.
-    if [ -n "$clang" ]; then
-        compiler=$clang
-    elif [ -n "$gcc" ]; then
-        compiler=$gcc
-    fi
-
-    configure "$compiler" "" "$bindir" "$libdir" "$CMakeGenerator"
+    mkdir -p "$builddir"
 fi
+
+# Prefer cmake3 over "regular" cmake (cmake == cmake2 on RHEL).
+if [ -z "$CMakeCommand" ]; then
+    if command -v cmake3 >/dev/null 2>&1 ; then
+        CMakeCommand="cmake3"
+    elif command -v cmake >/dev/null 2>&1 ; then
+        CMakeCommand="cmake"
+    else
+        echo "This package requires CMake, please install it first."
+        echo "Then you may use this script to configure the CMake build."
+        echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
+        exit 1;
+    fi
+fi
+
+cd "$builddir"
+
+# Run CMake.
+if [ -n "$CMakeGenerator" ]; then
+    "${CMakeCommand}" -G "$CMakeGenerator" $CMakeCacheEntries "$sourcedir"
+else
+    "${CMakeCommand}" $CMakeCacheEntries "$sourcedir"
+fi
+
+# Generate a config.status file that allows re-running this exact setup.
+printf "#!/bin/sh\n\n" > config.status
+printf "# Switch to the source of this build directory.\n" >> config.status
+printf "cd \"$sourcedir\"\n\n" >> config.status
+printf "# Invoke the command to configure this build.\n" >> config.status
+if [ -n "$CC" ]; then
+  printf "CC=\"%s\"\n" "$CC" >> config.status
+fi
+if [ -n "$CXX" ]; then
+  printf "CXX=\"%s\"\n" "$CXX" >> config.status
+fi
+if [ -n "$CXXFLAGS" ]; then
+  printf "CXXFLAGS=\"%s\"\n" "$CXXFLAGS" >> config.status
+fi
+if [ -n "$LDFLAGS" ]; then
+  printf "LDFLAGS=\"%s\"\n" "$LDFLAGS" >> config.status
+fi
+echo $command >> config.status
+chmod u+x config.status
