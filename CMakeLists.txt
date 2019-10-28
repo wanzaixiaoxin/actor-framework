@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(caf C CXX)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+project(caf C CXX)
 
 include(CheckCSourceCompiles)
 include(CheckCSourceRuns)
@@ -26,6 +23,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # Silence policy CMP0042 warning by enabling RPATH explicitly.
 if(APPLE AND NOT DEFINED CMAKE_MACOSX_RPATH)
   set(CMAKE_MACOSX_RPATH true)
+endif()
+
+# Require C++17.
+if(MSVC)
+  add_compile_options("/std:c++17")
+else()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang"
+      AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5)
+    add_compile_options("-std=c++1z")
+  else()
+    add_compile_options("-std=c++17")
+  endif()
 endif()
 
 # Shared libs are currently not supported on Windows.

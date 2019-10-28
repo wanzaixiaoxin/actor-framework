@@ -381,9 +381,7 @@ public:
   }
 
   template <class... Ts>
-  std::enable_if_t<(detail::is_serializable<Ts>::value && ...), error>
-  apply(std::tuple<Ts...>& xs) {
-    //apply_helper f{*this};
+  error apply(std::tuple<Ts...>& xs) {
     return detail::apply_args(*this, detail::get_indices(xs), xs);
   }
 
@@ -457,8 +455,14 @@ public:
   template <class T,
             class = std::enable_if_t<detail::is_inspectable<Derived, T>::value
                                      && !detail::has_serialize<T>::value>>
-  auto apply(T& x) {
-    return inspect(dref(), x);
+  error apply(T& x) {
+    using inspect_result = decltype(inspect(dref(), x));
+    if constexpr (std::is_same_v<inspect_result, error>) {
+      return inspect(dref(), x);
+    } else {
+      inspect(dref(), x);
+      return none;
+    }
   }
 
   // -- operator() -------------------------------------------------------------
@@ -470,7 +474,7 @@ public:
   template <class... Ts>
   error operator()(Ts&&... xs) {
     error result;
-    auto f = [&result, this](auto&& x) {
+    auto f = [&result, this](auto& x) {
       using type = std::decay_t<decltype(x)>;
       if constexpr (meta::is_save_callback<type>::value) {
         if constexpr (Derived::reads_state)
@@ -488,19 +492,14 @@ public:
                            || is_allowed_unsafe_message_type<type>::value) {
         // skip element
       } else {
-        using result_type = decltype(dref().apply(deconst(x)));
-        if constexpr (!std::is_same_v<void, result_type>) {
-          if (auto err = dref().apply(deconst(x))) {
-            result = std::move(err);
-            return false;
-          }
-        } else {
-          dref().apply(deconst(x));
+        if (auto err = dref().apply(deconst(x))) {
+          result = std::move(err);
+          return false;
         }
       }
       return true;
     };
-    if ((f(std::forward<Ts>(xs)) && ...))
+    if ((f(xs) && ...))
       return none;
     return result;
   }
