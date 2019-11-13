@@ -1,20 +1,20 @@
 #!/bin/sh
 
-# Get string representation of CAF version.
+# Get string representation of the current CAF version.
 caf_version=`grep "define CAF_VERSION" libcaf_core/caf/config.hpp | awk '{ printf "%d.%d.%d", int($3 / 10000), int($3 / 100) % 100, $3 % 100 }'`
 
-# Get SHA from Git.
-git_sha=`git log --pretty=format:%h -n 1`
+# Get string representation of the CAF version in the previous commit.
+prev_caf_version=`git show HEAD~1:libcaf_core/caf/config.hpp | grep "define CAF_VERSION" | awk '{ printf "%d.%d.%d", int($3 / 10000), int($3 / 100) % 100, $3 % 100 }'`
 
-# Check whether the current SHA is a tag.
-if git describe --tags --contains $git_sha 1>release.txt 2>/dev/null
-then
-  # Tags indicate stable release -> use tag version.
-  # On success, we'll have the tag version in release.txt now, so we're done.
-  echo "build a tagged release: $caf_version"
+# Check whether this commit is a version change.
+if [ "$caf_version" != "$prev_caf_version" ] ; then
+  # Version changes mark a stable release.
+  echo "build stable release version: $caf_version"
+  echo "$caf_version" >release.txt
 else
-  # Generate default release version.
+  # Get SHA from Git and generate '+exp.sha' version for this commit.
+  git_sha=`git log --pretty=format:%h -n 1`
   caf_release_version="$caf_version+exp.sha.$git_sha"
-  echo "build a commit version: $caf_release_version"
+  echo "build commit version: $caf_release_version"
   echo "$caf_release_version" >release.txt
 fi
